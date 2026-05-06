@@ -20,6 +20,7 @@ variable "repositories" {
     license_template       = optional(string, null)
     topics                 = optional(list(string), [])
     archived               = optional(bool, false)
+    import_id              = optional(bool, null)
     branch_protection = optional(object({
       pattern                = optional(string, "main")
       enforce_admins         = optional(bool, false)

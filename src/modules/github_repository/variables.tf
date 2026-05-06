@@ -56,6 +56,12 @@ variable "archived" {
   default     = false
 }
 
+variable "import_id" {
+  description = "Existing repo id to import"
+  type        = bool
+  default     = null
+}
+
 variable "branch_protection" {
   description = "Branch protection rule configuration. Set to null to skip."
   type = object({
