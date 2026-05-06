@@ -42,7 +42,22 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 
 - [OpenTofu](https://opentofu.org/docs/intro/install/) >= 1.6
 - Python >= 3.9 with `pyyaml` installed (`pip install pyyaml`)
+- [pre-commit](https://pre-commit.com/) installed (`pip install pre-commit`)
 - A GitHub Personal Access Token with `repo` and `admin:org` scopes
+
+## Pre-commit
+
+Install and enable Git hooks locally:
+
+```bash
+pre-commit install
+```
+
+Run all hooks manually:
+
+```bash
+pre-commit run --all-files
+```
 
 ## Adding or Updating a Repository
 
