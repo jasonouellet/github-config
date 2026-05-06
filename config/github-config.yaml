@@ -1,0 +1,31 @@
+# Configuration for repository: github-config
+name: github-config
+description: "Terraform configuration for managing GitHub organization repositories."
+visibility: public
+has_issues: true
+has_projects: false
+has_wiki: false
+is_template: false
+delete_branch_on_merge: true
+auto_init: true
+gitignore_template: "Terraform"
+license_template: "mit"
+topics:
+  - terraform
+  - github
+  - iac
+  - devops
+archived: false
+vulnerability_alerts: true
+branch_protection:
+  pattern: main
+  enforce_admins: false
+  require_signed_commits: true
+  required_status_checks:
+    strict: true
+    contexts:
+      - "CI / terraform-validate"
+  required_pull_request_reviews:
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: false
+    required_approving_review_count: 1

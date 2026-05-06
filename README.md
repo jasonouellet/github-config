@@ -1,1 +1,148 @@
 # github-config
+
+Infrastructure as Code (Terraform) for managing GitHub repositories in this organization.
+
+## Overview
+
+This repository uses Terraform to manage GitHub repository settings declaratively.
+Repository configurations are stored as YAML files, a script generates the Terraform
+variable file, and GitHub Actions CI/CD pipelines validate and apply changes automatically.
+
+## Directory Structure
+
+```
+.
+├── .devcontainer/                  # Dev Container configuration (VS Code / GitHub Codespaces)
+│   └── devcontainer.json
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                  # CI: format, validate, test, plan on PRs
+│       └── cd.yml                  # CD: apply on merge to main
+├── config/                         # One YAML file per managed GitHub repository
+│   ├── github-config.yaml
+│   └── example-service.yaml
+├── scripts/
+│   └── generate_tfvars.py          # Generates src/repositories.auto.tfvars.json from config/
+├── src/                            # Root Terraform configuration
+│   ├── main.tf                     # Calls github_repository module for every repository
+│   ├── variables.tf                # Input variable definitions
+│   ├── outputs.tf                  # Output definitions
+│   ├── terraform.tf                # Provider + backend configuration
+│   └── modules/
+│       └── github_repository/      # Reusable module: manages one GitHub repository
+│           ├── main.tf
+│           ├── variables.tf
+│           └── outputs.tf
+└── test/                           # Terraform native tests (.tftest.hcl)
+    ├── github_repository.tftest.hcl
+    └── root_module.tftest.hcl
+```
+
+## Prerequisites
+
+- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.6
+- Python >= 3.9 with `pyyaml` installed (`pip install pyyaml`)
+- A GitHub Personal Access Token with `repo` and `admin:org` scopes
+
+## Adding or Updating a Repository
+
+1. Create or edit a YAML file in `config/` (one file per repository):
+
+```yaml
+# config/my-new-repo.yaml
+name: my-new-repo
+description: "My new repository."
+visibility: private          # public | private | internal
+has_issues: true
+has_projects: false
+has_wiki: false
+delete_branch_on_merge: true
+auto_init: true
+topics:
+  - my-topic
+vulnerability_alerts: true
+branch_protection:
+  pattern: main
+  require_signed_commits: false
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+```
+
+2. Regenerate the tfvars file:
+
+```bash
+python scripts/generate_tfvars.py
+```
+
+3. Preview the changes:
+
+```bash
+cd src
+terraform init
+terraform plan
+```
+
+4. Open a Pull Request — CI will run `terraform fmt`, `validate`, tests, and `plan` automatically.
+
+5. Merge the PR — CD applies the changes to GitHub.
+
+## YAML Config Reference
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `name` | string | *filename* | Repository name (defaults to the YAML filename without extension) |
+| `description` | string | `""` | Short description |
+| `visibility` | string | `"private"` | `public`, `private`, or `internal` |
+| `has_issues` | bool | `true` | Enable GitHub Issues |
+| `has_projects` | bool | `false` | Enable GitHub Projects |
+| `has_wiki` | bool | `false` | Enable GitHub Wiki |
+| `is_template` | bool | `false` | Mark as a template repository |
+| `delete_branch_on_merge` | bool | `true` | Auto-delete head branch after merge |
+| `auto_init` | bool | `true` | Initialize with a README |
+| `gitignore_template` | string | `null` | e.g. `"Terraform"`, `"Python"` |
+| `license_template` | string | `null` | e.g. `"mit"`, `"apache-2.0"` |
+| `topics` | list | `[]` | Repository topics |
+| `archived` | bool | `false` | Archive (make read-only) the repository |
+| `vulnerability_alerts` | bool | `true` | Enable Dependabot alerts |
+| `branch_protection` | object | `null` | See below |
+
+### branch_protection
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `pattern` | string | `"main"` | Branch name pattern |
+| `enforce_admins` | bool | `false` | Enforce rules for admins |
+| `require_signed_commits` | bool | `false` | Require GPG-signed commits |
+| `required_status_checks.strict` | bool | `true` | Require up-to-date branch |
+| `required_status_checks.contexts` | list | `[]` | Required CI check names |
+| `required_pull_request_reviews.dismiss_stale_reviews` | bool | `true` | Dismiss stale approvals on new commits |
+| `required_pull_request_reviews.require_code_owner_reviews` | bool | `false` | Require CODEOWNERS review |
+| `required_pull_request_reviews.required_approving_review_count` | number | `1` | Minimum approvals required |
+
+## Running Tests
+
+Tests use Terraform's built-in test framework (requires Terraform >= 1.6):
+
+```bash
+cd src
+terraform init -backend=false
+cp ../test/*.tftest.hcl .
+terraform test
+```
+
+## GitHub Actions Secrets & Variables
+
+| Name | Type | Description |
+|------|------|-------------|
+| `TF_GITHUB_TOKEN` | Secret | GitHub PAT used by Terraform (`repo` + `admin:org` scopes) |
+| `GITHUB_OWNER` | Variable | GitHub organization or username |
+
+## Dev Container
+
+Open the repository in VS Code and choose **Reopen in Container** (or use GitHub Codespaces).
+The dev container includes:
+
+- Terraform + TFLint
+- Python 3.12 + PyYAML + Ruff
+- GitHub CLI
+- VS Code extensions: HashiCorp Terraform, Python, Ruff, YAML, GitHub Actions, GitLens
