@@ -1,5 +1,5 @@
 {
-  "name": "Terraform GitHub Config",
+  "name": "OpenTofu GitHub Config",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-26.04",
 
   "features": {
@@ -50,7 +50,7 @@
     }
   },
 
-  "postCreateCommand": "pip install pyyaml ruff && terraform -version && tflint --version",
+  "postCreateCommand": "pip install pyyaml ruff && curl -fsSL https://get.opentofu.org/install-opentofu.sh | bash && tofu -version && tflint --version",
 
   "remoteEnv": {
     "TF_CLI_ARGS_init": "-upgrade=false",

@@ -38,8 +38,8 @@ jobs:
           path: src/repositories.auto.tfvars.json
           retention-days: 1
 
-  terraform-validate:
-    name: terraform-validate
+  tofu-validate:
+    name: tofu-validate
     runs-on: ubuntu-latest
     needs: generate-tfvars
     defaults:
@@ -56,35 +56,35 @@ jobs:
           name: tfvars
           path: src
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: "~1.9"
+          tofu_version: "~1.10"
 
-      - name: Terraform Format Check
+      - name: OpenTofu Format Check
         id: fmt
-        run: terraform fmt -check -recursive
+        run: tofu fmt -check -recursive
 
-      - name: Terraform Init
+      - name: OpenTofu Init
         id: init
-        run: terraform init -backend=false
+        run: tofu init -backend=false
 
-      - name: Terraform Validate
+      - name: OpenTofu Validate
         id: validate
-        run: terraform validate
+        run: tofu validate
 
       - name: Post Format/Validate summary
         if: always()
         run: |
-          echo "## Terraform CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## OpenTofu CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Format | ${{ steps.fmt.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Init   | ${{ steps.init.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Validate | ${{ steps.validate.outcome }} |" >> $GITHUB_STEP_SUMMARY
 
-  terraform-test:
-    name: Terraform Unit Tests
+  tofu-test:
+    name: OpenTofu Unit Tests
     runs-on: ubuntu-latest
     needs: generate-tfvars
 
@@ -98,34 +98,34 @@ jobs:
           name: tfvars
           path: src
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: "~1.9"
+          tofu_version: "~1.10"
 
       - name: Init root module
         working-directory: src
-        run: terraform init -backend=false
+        run: tofu init -backend=false
 
       - name: Init module test harness
         working-directory: test/module
-        run: terraform init -backend=false
+        run: tofu init -backend=false
 
       - name: Run module unit tests
         working-directory: test/module
-        run: terraform test
+        run: tofu test
 
       - name: Run root module tests
         working-directory: src
         run: |
           cp ../test/root_module.tftest.hcl .
-          terraform test
+          tofu test
           rm -f root_module.tftest.hcl
 
-  terraform-plan:
-    name: Terraform Plan
+  tofu-plan:
+    name: OpenTofu Plan
     runs-on: ubuntu-latest
-    needs: [terraform-validate, terraform-test]
+    needs: [tofu-validate, tofu-test]
     if: github.event_name == 'pull_request'
     defaults:
       run:
@@ -145,17 +145,17 @@ jobs:
           name: tfvars
           path: src
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: "~1.9"
+          tofu_version: "~1.10"
 
-      - name: Terraform Init
-        run: terraform init
+      - name: OpenTofu Init
+        run: tofu init
 
-      - name: Terraform Plan
+      - name: OpenTofu Plan
         id: plan
-        run: terraform plan -no-color -out=tfplan
+        run: tofu plan -no-color -out=tfplan
         continue-on-error: true
 
       - name: Post Plan to PR
@@ -163,12 +163,12 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           script: |
-            const output = `#### Terraform Plan 📖
+            const output = `#### OpenTofu Plan 📖
             \`${{ steps.plan.outcome }}\`
 
             <details><summary>Show Plan</summary>
 
-            \`\`\`terraform
+            \`\`\`hcl
             ${{ steps.plan.outputs.stdout }}
             \`\`\`
 
@@ -183,7 +183,7 @@ jobs:
               body: output
             })
 
-      - name: Terraform Plan Status
+      - name: OpenTofu Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
 

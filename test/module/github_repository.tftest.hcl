@@ -1,6 +1,6 @@
 # Unit tests for the github_repository module.
 # Run from the test/module/ directory:
-#   terraform init && terraform test
+#   tofu init && tofu test
 #
 # Uses a mock provider so no real GitHub API calls are made.
 

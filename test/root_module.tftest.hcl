@@ -1,6 +1,6 @@
 # Integration tests for the root module (src/).
 # Run from the src/ directory:
-#   terraform init -backend=false && terraform test
+#   tofu init -backend=false && tofu test
 #
 # Uses a mock provider so no real GitHub API calls are made.
 
