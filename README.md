@@ -59,6 +59,30 @@ Run all hooks manually:
 pre-commit run --all-files
 ```
 
+## Changelog and Versioning
+
+This repository follows:
+
+- [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) in [CHANGELOG.md](CHANGELOG.md)
+- [Semantic Versioning](https://semver.org/)
+- Conventional Commit messages for automatic semantic bump detection
+
+Version bump rules:
+
+- `feat:` -> minor
+- `feat!:` or `BREAKING CHANGE:` -> major
+- `fix:` -> patch
+
+Release flow on `main`:
+
+1. CI succeeds.
+2. Release workflow calculates next version with GitVersion.
+3. Workflow validates that `CHANGELOG.md` contains `## [x.y.z]` for that version.
+4. Workflow creates and pushes tag `vx.y.z`.
+5. Workflow publishes a GitHub Release using the matching changelog section.
+
+When preparing a release, move relevant entries from `## Unreleased` to a new dated version section in `CHANGELOG.md`.
+
 ## Adding or Updating a Repository
 
 1. Create or edit a YAML file in `config/` (one file per repository):

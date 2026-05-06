@@ -1,0 +1,16 @@
+mode: ContinuousDelivery
+tag-prefix: '[vV]?'
+commit-message-incrementing: Enabled
+
+# Conventional Commit-driven bumps:
+# - major: feat!: ... OR BREAKING CHANGE: ...
+# - minor: feat: ...
+# - patch: fix: ...
+major-version-bump-message: '(^|\n)(feat(\([^)]*\))?!:|BREAKING CHANGE:|BREAKING-CHANGE:)'
+minor-version-bump-message: '(^|\n)feat(\([^)]*\))?:'
+patch-version-bump-message: '(^|\n)fix(\([^)]*\))?:'
+
+branches:
+  main:
+    regex: ^main$
+    increment: Patch
