@@ -6,9 +6,9 @@ locals {
   }
 }
 
-import "github_repository" "repositories" {
+import {
   for_each = local.import_repos
 
-  to = github_repository.this[each.key]
+  to = module.repositories[each.key].github_repository.this
   id = "${var.github_owner}/${each.key}"
 }
