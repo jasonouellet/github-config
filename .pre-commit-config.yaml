@@ -18,6 +18,14 @@ repos:
 
   - repo: local
     hooks:
+      - id: validate-config
+        name: validate-config
+        entry: python scripts/validate_config.py
+        language: python
+        additional_dependencies: [pyyaml, jsonschema]
+        pass_filenames: false
+        files: ^config/.*\.(yaml|yml)$
+
       - id: tofu-fmt-check
         name: tofu-fmt-check
         entry: tofu fmt -check -recursive

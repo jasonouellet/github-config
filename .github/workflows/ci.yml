@@ -13,6 +13,34 @@ permissions:
   pull-requests: write
 
 jobs:
+  yaml-validate:
+    name: YAML Schema Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema
+
+      - name: Validate config files
+        run: python scripts/validate_config.py --report reports/sonar-issues.json
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v3
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   generate-tfvars:
     name: Generate tfvars
     runs-on: ubuntu-latest

@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/jasonouellet/github-config/main/schemas/repository.schema.json",
+  "title": "GitHub Repository Configuration",
+  "description": "Schema v1.0.0 — validates repository configuration files in the config/ directory.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Repository name. Defaults to the YAML filename stem when omitted."
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the repository."
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["public", "private", "internal"],
+      "description": "Repository visibility: public, private, or internal."
+    },
+    "is_template": {
+      "type": "boolean",
+      "description": "Whether the repository is a template repository."
+    },
+    "auto_init": {
+      "type": "boolean",
+      "description": "Initialize the repository with a README on creation."
+    },
+    "gitignore_template": {
+      "type": ["string", "null"],
+      "description": "Gitignore template name, e.g. 'Terraform' or 'Python'."
+    },
+    "license_template": {
+      "type": ["string", "null"],
+      "description": "License template name, e.g. 'mit' or 'apache-2.0'."
+    },
+    "topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "List of repository topics."
+    },
+    "archived": {
+      "type": "boolean",
+      "description": "Archive (make read-only) the repository."
+    },
+    "branch_protection": {
+      "description": "Branch protection settings, or null to disable.",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/branch_protection" }
+      ]
+    }
+  },
+  "definitions": {
+    "branch_protection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Branch name or pattern to protect."
+        },
+        "enforce_admins": {
+          "type": "boolean",
+          "description": "Enforce branch protection rules for repository administrators."
+        },
+        "require_signed_commits": {
+          "type": "boolean",
+          "description": "Require GPG-signed commits on this branch."
+        },
+        "required_status_checks": {
+          "description": "Required status checks before merging, or null to disable.",
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/required_status_checks" }
+          ]
+        },
+        "required_pull_request_reviews": {
+          "description": "Required pull request reviews before merging, or null to disable.",
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/required_pull_request_reviews" }
+          ]
+        }
+      }
+    },
+    "required_status_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "strict": {
+          "type": "boolean",
+          "description": "Require the branch to be up-to-date before merging."
+        },
+        "contexts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of required CI check names."
+        }
+      }
+    },
+    "required_pull_request_reviews": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dismiss_stale_reviews": {
+          "type": "boolean",
+          "description": "Dismiss stale pull request approvals when new commits are pushed."
+        },
+        "require_code_owner_reviews": {
+          "type": "boolean",
+          "description": "Require review from designated code owners."
+        },
+        "required_approving_review_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6,
+          "description": "Minimum number of approvals required before merging."
+        }
+      }
+    }
+  }
+}

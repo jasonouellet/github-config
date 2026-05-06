@@ -19,6 +19,9 @@ crash.*.log
 # Generated tfvars file (created by scripts/generate_tfvars.py)
 src/repositories.auto.tfvars.json
 
+# Generated validation reports (created by scripts/validate_config.py)
+reports/
+
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
 override.tf

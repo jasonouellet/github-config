@@ -45,7 +45,7 @@
     }
   },
 
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y git-lfs && git lfs install --force && pip install pyyaml ruff pre-commit && curl -fsSL https://get.opentofu.org/install-opentofu.sh | bash -s -- --install-method standalone && curl -fsSL https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash && tofu -version && tflint --version && pre-commit install",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y git-lfs && git lfs install --force && pip install pyyaml jsonschema ruff pre-commit && curl -fsSL https://get.opentofu.org/install-opentofu.sh | bash -s -- --install-method standalone && curl -fsSL https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash && tofu -version && tflint --version && pre-commit install",
 
   "remoteEnv": {
     "TF_CLI_ARGS_init": "-upgrade=false",

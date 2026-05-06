@@ -16,13 +16,17 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 │   └── devcontainer.json
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                  # CI: format, validate, test, plan on PRs
+│       ├── ci.yml                  # CI: schema validation, format, validate, test, plan on PRs
 │       └── cd.yml                  # CD: apply on merge to main
 ├── config/                         # One YAML file per managed GitHub repository
 │   ├── github-config.yaml
 │   └── example-service.yaml
+├── schemas/
+│   └── repository.schema.json      # JSON Schema (draft-07) for config/ YAML files
 ├── scripts/
-│   └── generate_tfvars.py          # Generates src/repositories.auto.tfvars.json from config/
+│   ├── generate_tfvars.py          # Generates src/repositories.auto.tfvars.json from config/
+│   └── validate_config.py          # Validates config/ YAML files against the schema
+├── sonar-project.properties        # SonarCloud project configuration
 ├── src/                            # Root IaC configuration
 │   ├── main.tf                     # Calls github_repository module for every repository
 │   ├── variables.tf                # Input variable definitions
@@ -41,7 +45,7 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 ## Prerequisites
 
 - [OpenTofu](https://opentofu.org/docs/intro/install/) >= 1.6
-- Python >= 3.9 with `pyyaml` installed (`pip install pyyaml`)
+- Python >= 3.10 with `pyyaml` and `jsonschema` installed (`pip install pyyaml jsonschema`)
 - [pre-commit](https://pre-commit.com/) installed (`pip install pre-commit`)
 - A GitHub Personal Access Token with `repo` and `admin:org` scopes
 
@@ -58,6 +62,60 @@ Run all hooks manually:
 ```bash
 pre-commit run --all-files
 ```
+
+## YAML Schema Validation
+
+Repository config files in `config/` are validated against `schemas/repository.schema.json`
+(JSON Schema draft-07). Validation is **blocking** in CI and also runs automatically via
+pre-commit on every staged `config/*.yaml` change.
+
+### Run validation locally
+
+```bash
+python scripts/validate_config.py
+```
+
+To also produce a Sonar-compatible generic issue report:
+
+```bash
+python scripts/validate_config.py --report reports/sonar-issues.json
+```
+
+All options:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--config-dir DIR` | `config` | Directory with YAML config files |
+| `--schema FILE` | `schemas/repository.schema.json` | Path to JSON Schema file |
+| `--report FILE` | *(none)* | Write a Sonar-compatible generic issue report to FILE |
+
+### Fixing validation errors
+
+Each error line shows the YAML field path and a description, for example:
+
+```
+[FAIL] config/my-repo.yaml
+       - visibility: 'staging' is not one of ['public', 'private', 'internal']
+       - branch_protection.required_approving_review_count: 10 is greater than the maximum of 6
+```
+
+Fix the flagged fields in the YAML file to match the allowed values described in the
+[YAML Config Reference](#yaml-config-reference) below.
+
+### Schema versioning
+
+The schema version is noted in the `description` field of `schemas/repository.schema.json`.
+Bump the version string whenever the schema gains new constraints or breaking changes.
+
+### Sonar integration
+
+SonarCloud is configured via `sonar-project.properties`. The CI `yaml-validate` job
+produces `reports/sonar-issues.json` (Sonar Generic Issue Data format) and then runs
+the SonarCloud scan, which picks up both Python analysis of `scripts/` and the external
+YAML validation issues.
+
+To enable the SonarCloud scan, add a `SONAR_TOKEN` secret to the repository
+(Settings → Secrets and variables → Actions).
 
 ## Changelog and Versioning
 
