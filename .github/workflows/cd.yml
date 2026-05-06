@@ -34,7 +34,7 @@ jobs:
         run: python scripts/generate_tfvars.py
 
       - name: Upload tfvars artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tfvars
           path: src/repositories.auto.tfvars.json
