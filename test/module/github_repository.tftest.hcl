@@ -1,4 +1,4 @@
-# Unit tests for the github_repository module.
+# Unit tests for the IaC github_repository module.
 # Run from the test/module/ directory:
 #   tofu init && tofu test
 #

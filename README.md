@@ -1,11 +1,11 @@
 # github-config
 
-Infrastructure as Code (OpenTofu) for managing GitHub repositories in this organization.
+Infrastructure as Code (IaC) for managing GitHub repositories in this organization.
 
 ## Overview
 
-This repository uses OpenTofu to manage GitHub repository settings declaratively.
-Repository configurations are stored as YAML files, a script generates the OpenTofu
+This repository uses OpenTofu as the IaC engine to manage GitHub repository settings declaratively.
+Repository configurations are stored as YAML files, a script generates the IaC
 variable file, and GitHub Actions CI/CD pipelines validate and apply changes automatically.
 
 ## Directory Structure
@@ -23,7 +23,7 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 │   └── example-service.yaml
 ├── scripts/
 │   └── generate_tfvars.py          # Generates src/repositories.auto.tfvars.json from config/
-├── src/                            # Root OpenTofu configuration
+├── src/                            # Root IaC configuration
 │   ├── main.tf                     # Calls github_repository module for every repository
 │   ├── variables.tf                # Input variable definitions
 │   ├── outputs.tf                  # Output definitions
@@ -33,7 +33,7 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 │           ├── main.tf
 │           ├── variables.tf
 │           └── outputs.tf
-└── test/                           # OpenTofu native tests (.tftest.hcl)
+└── test/                           # IaC native tests (.tftest.hcl)
     ├── github_repository.tftest.hcl
     └── root_module.tftest.hcl
 ```
@@ -111,7 +111,7 @@ tofu plan
 
 ## Running Tests
 
-Tests use OpenTofu's built-in test framework (requires OpenTofu >= 1.6):
+Tests use the IaC built-in test framework (OpenTofu >= 1.6 required):
 
 ```bash
 cd src
@@ -124,7 +124,7 @@ tofu test
 
 | Name | Type | Description |
 |------|------|-------------|
-| `TF_GITHUB_TOKEN` | Secret | GitHub PAT used by OpenTofu (`repo` + `admin:org` scopes) |
+| `TF_GITHUB_TOKEN` | Secret | GitHub PAT used by IaC (`repo` + `admin:org` scopes) |
 | `GITHUB_OWNER` | Variable | GitHub organization or username |
 
 ## Dev Container
@@ -132,7 +132,7 @@ tofu test
 Open the repository in VS Code and choose **Reopen in Container** (or use GitHub Codespaces).
 The dev container includes:
 
-- OpenTofu + TFLint
+- IaC tooling (OpenTofu) + TFLint
 - Python 3.12 + PyYAML + Ruff
 - GitHub CLI
 - VS Code extensions: HashiCorp Terraform, Python, Ruff, YAML, GitHub Actions, GitLens

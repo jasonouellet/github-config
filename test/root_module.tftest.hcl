@@ -1,4 +1,4 @@
-# Integration tests for the root module (src/).
+# Integration tests for the IaC root module (src/).
 # Run from the src/ directory:
 #   tofu init -backend=false && tofu test
 #

@@ -1,6 +1,6 @@
 # Configuration for repository: github-config
 name: github-config
-description: "OpenTofu configuration for managing GitHub organization repositories."
+description: "IaC configuration for managing GitHub organization repositories."
 visibility: public
 is_template: false
 auto_init: true
