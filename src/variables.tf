@@ -12,15 +12,15 @@ variable "github_owner" {
 variable "repositories" {
   description = "Map of repository configurations keyed by repository name."
   type = map(object({
-    description            = optional(string, "")
-    visibility             = optional(string, "private")
-    is_template            = optional(bool, false)
-    auto_init              = optional(bool, true)
-    gitignore_template     = optional(string, null)
-    license_template       = optional(string, null)
-    topics                 = optional(list(string), [])
-    archived               = optional(bool, false)
-    import_id              = optional(bool, null)
+    description        = optional(string, "")
+    visibility         = optional(string, "private")
+    is_template        = optional(bool, false)
+    auto_init          = optional(bool, true)
+    gitignore_template = optional(string, null)
+    license_template   = optional(string, null)
+    topics             = optional(list(string), [])
+    archived           = optional(bool, false)
+    import_id          = optional(bool, null)
     branch_protection = optional(object({
       pattern                = optional(string, "main")
       enforce_admins         = optional(bool, false)

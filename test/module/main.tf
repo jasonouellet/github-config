@@ -18,14 +18,14 @@ provider "github" {
 module "under_test" {
   source = "../../src/modules/github_repository"
 
-  name              = var.name
-  description       = var.description
-  visibility        = var.visibility
-  is_template       = var.is_template
-  auto_init         = var.auto_init
+  name               = var.name
+  description        = var.description
+  visibility         = var.visibility
+  is_template        = var.is_template
+  auto_init          = var.auto_init
   gitignore_template = var.gitignore_template
-  license_template  = var.license_template
-  topics            = var.topics
-  archived          = var.archived
-  branch_protection = var.branch_protection
+  license_template   = var.license_template
+  topics             = var.topics
+  archived           = var.archived
+  branch_protection  = var.branch_protection
 }
