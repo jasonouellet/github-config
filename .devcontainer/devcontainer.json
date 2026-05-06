@@ -1,6 +1,6 @@
 {
   "name": "Terraform GitHub Config",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-26.04",
 
   "features": {
     "ghcr.io/devcontainers/features/terraform:1": {

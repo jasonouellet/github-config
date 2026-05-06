@@ -12,29 +12,9 @@ variable "visibility" {
   default = "private"
 }
 
-variable "has_issues" {
-  type    = bool
-  default = true
-}
-
-variable "has_projects" {
-  type    = bool
-  default = false
-}
-
-variable "has_wiki" {
-  type    = bool
-  default = false
-}
-
 variable "is_template" {
   type    = bool
   default = false
-}
-
-variable "delete_branch_on_merge" {
-  type    = bool
-  default = true
 }
 
 variable "auto_init" {
@@ -60,11 +40,6 @@ variable "topics" {
 variable "archived" {
   type    = bool
   default = false
-}
-
-variable "vulnerability_alerts" {
-  type    = bool
-  default = true
 }
 
 variable "branch_protection" {

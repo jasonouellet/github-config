@@ -13,11 +13,6 @@ output "html_url" {
   value       = github_repository.this.html_url
 }
 
-output "ssh_clone_url" {
-  description = "The SSH clone URL of the repository."
-  value       = github_repository.this.ssh_clone_url
-}
-
 output "http_clone_url" {
   description = "The HTTPS clone URL of the repository."
   value       = github_repository.this.http_clone_url

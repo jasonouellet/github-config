@@ -53,14 +53,9 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 name: my-new-repo
 description: "My new repository."
 visibility: private          # public | private | internal
-has_issues: true
-has_projects: false
-has_wiki: false
-delete_branch_on_merge: true
 auto_init: true
 topics:
   - my-topic
-vulnerability_alerts: true
 branch_protection:
   pattern: main
   require_signed_commits: false
@@ -93,17 +88,12 @@ terraform plan
 | `name` | string | *filename* | Repository name (defaults to the YAML filename without extension) |
 | `description` | string | `""` | Short description |
 | `visibility` | string | `"private"` | `public`, `private`, or `internal` |
-| `has_issues` | bool | `true` | Enable GitHub Issues |
-| `has_projects` | bool | `false` | Enable GitHub Projects |
-| `has_wiki` | bool | `false` | Enable GitHub Wiki |
 | `is_template` | bool | `false` | Mark as a template repository |
-| `delete_branch_on_merge` | bool | `true` | Auto-delete head branch after merge |
 | `auto_init` | bool | `true` | Initialize with a README |
 | `gitignore_template` | string | `null` | e.g. `"Terraform"`, `"Python"` |
 | `license_template` | string | `null` | e.g. `"mit"`, `"apache-2.0"` |
 | `topics` | list | `[]` | Repository topics |
 | `archived` | bool | `false` | Archive (make read-only) the repository |
-| `vulnerability_alerts` | bool | `true` | Enable Dependabot alerts |
 | `branch_protection` | object | `null` | See below |
 
 ### branch_protection

@@ -2,11 +2,7 @@
 name: github-config
 description: "Terraform configuration for managing GitHub organization repositories."
 visibility: public
-has_issues: true
-has_projects: false
-has_wiki: false
 is_template: false
-delete_branch_on_merge: true
 auto_init: true
 gitignore_template: "Terraform"
 license_template: "mit"
@@ -16,7 +12,6 @@ topics:
   - iac
   - devops
 archived: false
-vulnerability_alerts: true
 branch_protection:
   pattern: main
   enforce_admins: false

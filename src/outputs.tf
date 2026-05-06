@@ -8,11 +8,6 @@ output "repository_urls" {
   value       = { for k, v in module.repositories : k => v.html_url }
 }
 
-output "repository_ssh_clone_urls" {
-  description = "SSH clone URLs of all managed repositories."
-  value       = { for k, v in module.repositories : k => v.ssh_clone_url }
-}
-
 output "repository_http_clone_urls" {
   description = "HTTPS clone URLs of all managed repositories."
   value       = { for k, v in module.repositories : k => v.http_clone_url }

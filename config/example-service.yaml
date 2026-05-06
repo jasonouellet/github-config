@@ -2,11 +2,7 @@
 name: example-service
 description: "Example microservice repository."
 visibility: private
-has_issues: true
-has_projects: false
-has_wiki: false
 is_template: false
-delete_branch_on_merge: true
 auto_init: true
 gitignore_template: null
 license_template: null
@@ -14,7 +10,6 @@ topics:
   - microservice
   - example
 archived: false
-vulnerability_alerts: true
 branch_protection:
   pattern: main
   enforce_admins: false

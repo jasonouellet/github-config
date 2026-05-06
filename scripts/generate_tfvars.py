@@ -30,17 +30,12 @@ except ImportError:
 SCHEMA_DEFAULTS = {
     "description": "",
     "visibility": "private",
-    "has_issues": True,
-    "has_projects": False,
-    "has_wiki": False,
     "is_template": False,
-    "delete_branch_on_merge": True,
     "auto_init": True,
     "gitignore_template": None,
     "license_template": None,
     "topics": [],
     "archived": False,
-    "vulnerability_alerts": True,
     "branch_protection": None,
 }
 

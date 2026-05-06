@@ -14,17 +14,12 @@ variable "repositories" {
   type = map(object({
     description            = optional(string, "")
     visibility             = optional(string, "private")
-    has_issues             = optional(bool, true)
-    has_projects           = optional(bool, false)
-    has_wiki               = optional(bool, false)
     is_template            = optional(bool, false)
-    delete_branch_on_merge = optional(bool, true)
     auto_init              = optional(bool, true)
     gitignore_template     = optional(string, null)
     license_template       = optional(string, null)
     topics                 = optional(list(string), [])
     archived               = optional(bool, false)
-    vulnerability_alerts   = optional(bool, true)
     branch_protection = optional(object({
       pattern                = optional(string, "main")
       enforce_admins         = optional(bool, false)

@@ -2,11 +2,11 @@ resource "github_repository" "this" {
   name                   = var.name
   description            = var.description
   visibility             = var.visibility
-  has_issues             = var.has_issues
-  has_projects           = var.has_projects
-  has_wiki               = var.has_wiki
+  has_issues             = true
+  has_projects           = false
+  has_wiki               = false
   is_template            = var.is_template
-  delete_branch_on_merge = var.delete_branch_on_merge
+  delete_branch_on_merge = true
   auto_init              = var.auto_init
   gitignore_template     = var.gitignore_template
   license_template       = var.license_template
@@ -16,7 +16,7 @@ resource "github_repository" "this" {
 
 resource "github_repository_vulnerability_alerts" "this" {
   repository = github_repository.this.name
-  enabled    = var.vulnerability_alerts
+  enabled    = true
 }
 
 resource "github_branch_protection" "this" {

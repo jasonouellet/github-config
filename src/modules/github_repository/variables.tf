@@ -20,34 +20,10 @@ variable "visibility" {
   }
 }
 
-variable "has_issues" {
-  description = "Enable GitHub Issues for the repository."
-  type        = bool
-  default     = true
-}
-
-variable "has_projects" {
-  description = "Enable GitHub Projects for the repository."
-  type        = bool
-  default     = false
-}
-
-variable "has_wiki" {
-  description = "Enable GitHub Wiki for the repository."
-  type        = bool
-  default     = false
-}
-
 variable "is_template" {
   description = "Mark the repository as a template repository."
   type        = bool
   default     = false
-}
-
-variable "delete_branch_on_merge" {
-  description = "Automatically delete head branches when pull requests are merged."
-  type        = bool
-  default     = true
 }
 
 variable "auto_init" {
@@ -78,12 +54,6 @@ variable "archived" {
   description = "Archive the repository, making it read-only."
   type        = bool
   default     = false
-}
-
-variable "vulnerability_alerts" {
-  description = "Enable Dependabot vulnerability alerts on the repository."
-  type        = bool
-  default     = true
 }
 
 variable "branch_protection" {
