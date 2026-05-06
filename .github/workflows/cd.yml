@@ -1,0 +1,88 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      confirm_apply:
+        description: "Type 'apply' to confirm running tofu apply"
+        required: true
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  generate-tfvars:
+    name: Generate tfvars
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Generate repositories.auto.tfvars.json
+        run: python scripts/generate_tfvars.py
+
+      - name: Upload tfvars artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfvars
+          path: src/repositories.auto.tfvars.json
+          retention-days: 1
+
+  tofu-apply:
+    name: OpenTofu Apply
+    runs-on: ubuntu-latest
+    needs: generate-tfvars
+    environment: production
+    if: >
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm_apply == 'apply')
+    defaults:
+      run:
+        working-directory: src
+    env:
+      TF_VAR_github_token: ${{ secrets.TF_GITHUB_TOKEN }}
+      TF_VAR_github_owner: ${{ vars.GITHUB_OWNER }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download tfvars artifact
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: tfvars
+          path: src
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "~1.10"
+
+      - name: OpenTofu Init
+        run: tofu init
+
+      - name: OpenTofu Plan
+        run: tofu plan -no-color -out=tfplan
+
+      - name: OpenTofu Apply
+        run: tofu apply -auto-approve tfplan
+
+      - name: Post Apply summary
+        if: always()
+        run: |
+          echo "## OpenTofu Apply Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Applied at: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "Triggered by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

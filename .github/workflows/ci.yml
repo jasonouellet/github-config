@@ -1,0 +1,206 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  generate-tfvars:
+    name: Generate tfvars
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Generate repositories.auto.tfvars.json
+        run: python scripts/generate_tfvars.py
+
+      - name: Upload tfvars artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfvars
+          path: src/repositories.auto.tfvars.json
+          retention-days: 1
+
+  tofu-validate:
+    name: tofu-validate
+    runs-on: ubuntu-latest
+    needs: generate-tfvars
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download tfvars artifact
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: tfvars
+          path: src
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "~1.10"
+
+      - name: OpenTofu Format Check
+        id: fmt
+        run: tofu fmt -check -recursive
+
+      - name: OpenTofu Init
+        id: init
+        run: tofu init -backend=false
+
+      - name: OpenTofu Validate
+        id: validate
+        run: tofu validate
+
+      - name: Post Format/Validate summary
+        if: always()
+        run: |
+          echo "## OpenTofu CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Format | ${{ steps.fmt.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Init   | ${{ steps.init.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Validate | ${{ steps.validate.outcome }} |" >> $GITHUB_STEP_SUMMARY
+
+  tofu-test:
+    name: OpenTofu Unit Tests
+    runs-on: ubuntu-latest
+    needs: generate-tfvars
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download tfvars artifact
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: tfvars
+          path: src
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "~1.10"
+
+      - name: Init root module
+        working-directory: src
+        run: tofu init -backend=false
+
+      - name: Init module test harness
+        working-directory: test/module
+        run: tofu init -backend=false
+
+      - name: Run module unit tests
+        working-directory: test/module
+        run: tofu test
+
+      - name: Run root module tests
+        working-directory: src
+        run: |
+          cp ../test/root_module.tftest.hcl .
+          tofu test
+          rm -f root_module.tftest.hcl
+
+  tofu-plan:
+    name: OpenTofu Plan
+    runs-on: ubuntu-latest
+    needs: [tofu-validate, tofu-test]
+    if: github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: src
+    env:
+      GITHUB_TOKEN: ${{ secrets.TF_GITHUB_TOKEN }}
+      TF_VAR_github_token: ${{ secrets.TF_GITHUB_TOKEN }}
+      TF_VAR_github_owner: ${{ vars.GITHUB_OWNER }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download tfvars artifact
+        uses: actions/download-artifact@v4.1.3
+        with:
+          name: tfvars
+          path: src
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "~1.10"
+
+      - name: OpenTofu Init
+        run: tofu init
+
+      - name: OpenTofu Plan
+        id: plan
+        run: tofu plan -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Post Plan to PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const output = `#### OpenTofu Plan 📖
+            \`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`hcl
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: OpenTofu Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  python-lint:
+    name: Python Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check scripts/
