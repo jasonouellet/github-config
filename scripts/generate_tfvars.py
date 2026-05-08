@@ -40,6 +40,9 @@ SCHEMA_DEFAULTS = {
     "license_template": None,
     "topics": [],
     "archived": False,
+    "has_projects": False,
+    "has_wiki": False,
+    "delete_branch_on_merge": True,
     "import_id": None,
     "branch_protection": None,
 }
@@ -124,7 +127,11 @@ def load_all_configs(config_dir: Path) -> dict:
     """Load all YAML files from config_dir and return a repositories map."""
     repositories: dict[str, dict] = {}
 
-    yaml_files = sorted(config_dir.glob("*.yaml")) + sorted(config_dir.glob("*.yml"))
+    yaml_files = [
+        f
+        for f in sorted(config_dir.glob("*.yaml")) + sorted(config_dir.glob("*.yml"))
+        if not f.name.startswith("example")
+    ]
     if not yaml_files:
         print(f"Warning: no YAML files found in {config_dir}", file=sys.stderr)
 

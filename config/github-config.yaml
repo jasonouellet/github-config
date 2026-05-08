@@ -11,17 +11,5 @@ topics:
   - github
   - iac
   - devops
-archived: false
 import_id: true
-branch_protection:
-  pattern: main
-  enforce_admins: false
-  require_signed_commits: true
-  required_status_checks:
-    strict: true
-    contexts:
-      - "CI / tofu-validate"
-  required_pull_request_reviews:
-    dismiss_stale_reviews: true
-    require_code_owner_reviews: false
-    required_approving_review_count: 1
+branch_protection: null
