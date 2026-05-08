@@ -225,8 +225,8 @@ tofu test
 
 | Name | Type | Description |
 |------|------|-------------|
-| `TF_GITHUB_TOKEN` | Secret | GitHub PAT used by IaC (`repo` + `admin:org` scopes) |
-| `GITHUB_OWNER` | Variable | GitHub organization or username |
+| `GH_APP_ID` | Secret | GitHub App ID used to mint short-lived installation tokens |
+| `GH_APP_PRIVATE_KEY` | Secret | GitHub App private key (PEM) used by `actions/create-github-app-token` |
 
 ## Dev Container
 

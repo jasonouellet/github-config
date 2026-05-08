@@ -78,11 +78,10 @@ When adding new YAML fields, update all of these together:
 - **CI** (`.github/workflows/ci.yml`): runs on PRs — schema validation, tofu fmt, validate, test, plan
 - **CD** (`.github/workflows/cd.yml`): runs on merge to `main` — applies changes
 
-Required secrets/variables: `TF_GITHUB_TOKEN` (secret), `GITHUB_OWNER` (variable).
+Required secrets: `GH_APP_ID`, `GH_APP_PRIVATE_KEY` (GitHub App private key in PEM format).
 
 ## Style Rules
 
-- HCL: always run `tofu fmt` before committing (`scripts/generate_tfvars.py` does this automatically)
 - HCL: always run `tofu fmt` before committing
 - Python: formatted with `ruff format`, linted with `ruff`
 - Commits: use Conventional Commits (`feat:`, `fix:`, `chore:`, etc.)
