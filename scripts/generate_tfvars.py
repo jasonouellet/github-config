@@ -66,7 +66,7 @@ REQUIRED_PR_REVIEWS_DEFAULTS = {
     "required_approving_review_count": 1,
 }
 
-HCL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][0-9A-Za-z_]*$")
+HCL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_]\w*$")
 
 
 def merge_defaults(data: dict, defaults: dict) -> dict:
