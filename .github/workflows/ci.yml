@@ -48,6 +48,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@fc711fa910b93cba0f3fbecaafc9f42fd0c411cb # v2.0.0
+        with:
+          tofu_version: "~1.10"
+
+      - name: OpenTofu Format Check
+        run: tofu fmt -check -recursive
+
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -89,10 +97,6 @@ jobs:
         with:
           tofu_version: "~1.10"
 
-      - name: OpenTofu Format Check
-        id: fmt
-        run: tofu fmt -check -recursive
-
       - name: OpenTofu Init
         id: init
         run: tofu init -backend=false
@@ -107,7 +111,6 @@ jobs:
           echo "## OpenTofu CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Format | ${{ steps.fmt.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Init   | ${{ steps.init.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Validate | ${{ steps.validate.outcome }} |" >> $GITHUB_STEP_SUMMARY
 

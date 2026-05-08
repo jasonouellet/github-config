@@ -70,8 +70,6 @@ branch_protection: null    # set after import if needed
 python scripts/generate_tfvars.py
 ```
 
-This also runs `tofu fmt` automatically.
-
 ### 3. Validate the YAML schema
 
 ```bash

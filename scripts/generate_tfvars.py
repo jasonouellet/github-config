@@ -18,7 +18,6 @@ Options:
 import argparse
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -210,7 +209,6 @@ def write_tfvars(repositories: dict, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as fh:
         fh.write(payload)
-    subprocess.run(["tofu", "fmt", str(output_path)], check=True)
     print(f"Generated: {output_path} ({len(repositories)} repositories)")
 
 
