@@ -25,3 +25,10 @@ import {
   to = module.repositories[each.key].github_branch_protection.this[0]
   id = "${each.key}:${each.value.branch_protection.pattern}"
 }
+
+import {
+  for_each = local.import_repos
+
+  to = module.repositories[each.key].github_repository_vulnerability_alerts.this
+  id = each.key
+}
