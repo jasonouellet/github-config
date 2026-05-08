@@ -2,7 +2,7 @@ locals {
   import_repos = {
     for name, config in var.repositories :
     name => config
-    if config.import_id != null
+    if config.import_id == true
   }
 }
 

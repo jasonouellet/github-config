@@ -12,6 +12,7 @@ topics:
   - iac
   - devops
 archived: false
+import_id: true
 branch_protection:
   pattern: main
   enforce_admins: false
