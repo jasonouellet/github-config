@@ -43,6 +43,7 @@ jobs:
   generate-tfvars:
     name: Generate tfvars
     runs-on: ubuntu-latest
+    needs: yaml-validate
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -185,7 +186,16 @@ jobs:
 
       - name: OpenTofu Plan
         id: plan
-        run: tofu plan -no-color -out=tfplan
+        run: |
+          set +e
+          tofu plan -no-color -out=tfplan | tee plan.stdout
+          plan_exit=${PIPESTATUS[0]}
+          {
+            echo 'stdout<<EOF'
+            cat plan.stdout
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+          exit "$plan_exit"
         continue-on-error: true
 
       - name: Post Plan to PR

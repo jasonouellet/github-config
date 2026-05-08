@@ -85,4 +85,5 @@ Required secrets/variables: `TF_GITHUB_TOKEN` (secret), `GITHUB_OWNER` (variable
 - HCL: always run `tofu fmt` before committing (`scripts/generate_tfvars.py` does this automatically)
 - Python: formatted with `ruff format`, linted with `ruff`
 - Commits: use Conventional Commits (`feat:`, `fix:`, `chore:`, etc.)
+- Never run `git commit` or `git push` unless the user explicitly asks for it in the current conversation.
 - Do not commit `src/repositories.auto.tfvars` (it is gitignored)

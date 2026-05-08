@@ -51,7 +51,7 @@ SCHEMA_DEFAULTS = {
 BRANCH_PROTECTION_DEFAULTS = {
     "pattern": "main",
     "enforce_admins": False,
-    "require_signed_commits": False,
+    "require_signed_commits": True,
     "required_status_checks": None,
     "required_pull_request_reviews": None,
 }
@@ -128,11 +128,18 @@ def load_all_configs(config_dir: Path) -> dict:
     """Load all YAML files from config_dir and return a repositories map."""
     repositories: dict[str, dict] = {}
 
-    yaml_files = [
-        f
-        for f in sorted(config_dir.glob("*.yaml")) + sorted(config_dir.glob("*.yml"))
-        if not f.name.startswith("example")
-    ]
+    all_yaml_files = sorted(config_dir.glob("*.yaml")) + sorted(
+        config_dir.glob("*.yml")
+    )
+    skipped_example_files = [f for f in all_yaml_files if f.name.startswith("example")]
+    yaml_files = [f for f in all_yaml_files if not f.name.startswith("example")]
+
+    for skipped in skipped_example_files:
+        print(
+            f"Warning: skipping example config file '{skipped.as_posix()}'.",
+            file=sys.stderr,
+        )
+
     if not yaml_files:
         print(f"Warning: no YAML files found in {config_dir}", file=sys.stderr)
 

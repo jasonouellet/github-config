@@ -81,6 +81,8 @@ To also produce a Sonar-compatible generic issue report:
 python scripts/validate_config.py --report reports/sonar-issues.json
 ```
 
+Note: files named `example*.yaml` are ignored by `scripts/generate_tfvars.py` and are treated as examples only.
+
 All options:
 
 | Option | Default | Description |
@@ -201,7 +203,7 @@ tofu plan
 |-------|------|---------|-------------|
 | `pattern` | string | `"main"` | Branch name pattern |
 | `enforce_admins` | bool | `false` | Enforce rules for admins |
-| `require_signed_commits` | bool | `false` | Require GPG-signed commits |
+| `require_signed_commits` | bool | `true` | Require GPG-signed commits |
 | `required_status_checks.strict` | bool | `true` | Require up-to-date branch |
 | `required_status_checks.contexts` | list | `[]` | Required CI check names |
 | `required_pull_request_reviews.dismiss_stale_reviews` | bool | `true` | Dismiss stale approvals on new commits |
