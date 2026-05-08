@@ -24,7 +24,7 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 ├── schemas/
 │   └── repository.schema.json      # JSON Schema (draft-07) for config/ YAML files
 ├── scripts/
-│   ├── generate_tfvars.py          # Generates src/repositories.auto.tfvars.json from config/
+│   ├── generate_tfvars.py          # Generates src/repositories.auto.tfvars from config/
 │   └── validate_config.py          # Validates config/ YAML files against the schema
 ├── sonar-project.properties        # SonarCloud project configuration
 ├── src/                            # Root IaC configuration
@@ -151,6 +151,7 @@ name: my-new-repo
 description: "My new repository."
 visibility: private          # public | private | internal
 auto_init: true
+import_id: true            # optional: set true when repo already exists and must be imported
 topics:
   - my-topic
 branch_protection:
@@ -191,6 +192,7 @@ tofu plan
 | `license_template` | string | `null` | e.g. `"mit"`, `"apache-2.0"` |
 | `topics` | list | `[]` | Repository topics |
 | `archived` | bool | `false` | Archive (make read-only) the repository |
+| `import_id` | bool | `null` | Set to `true` to import an existing repo into OpenTofu state before apply |
 | `branch_protection` | object | `null` | See below |
 
 ### branch_protection

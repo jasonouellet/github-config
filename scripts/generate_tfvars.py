@@ -3,7 +3,7 @@
 generate_tfvars.py
 
 Reads all YAML files from the config/ directory and generates a
-repositories.auto.tfvars.json file consumed by Terraform in src/.
+repositories.auto.tfvars file consumed by Terraform in src/.
 
 Usage:
     python scripts/generate_tfvars.py [--config-dir CONFIG_DIR] [--output OUTPUT]
@@ -11,19 +11,23 @@ Usage:
 Options:
     --config-dir    Directory containing YAML repository config files
                     (default: config)
-    --output        Path for the generated tfvars JSON file
-                    (default: src/repositories.auto.tfvars.json)
+    --output        Path for the generated tfvars HCL file
+                    (default: src/repositories.auto.tfvars)
 """
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
 try:
     import yaml
 except ImportError:
-    print("Error: PyYAML is required. Install it with: pip install pyyaml", file=sys.stderr)
+    print(
+        "Error: PyYAML is required. Install it with: pip install pyyaml",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
@@ -36,6 +40,7 @@ SCHEMA_DEFAULTS = {
     "license_template": None,
     "topics": [],
     "archived": False,
+    "import_id": None,
     "branch_protection": None,
 }
 
@@ -57,6 +62,8 @@ REQUIRED_PR_REVIEWS_DEFAULTS = {
     "require_code_owner_reviews": False,
     "required_approving_review_count": 1,
 }
+
+HCL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][0-9A-Za-z_]*$")
 
 
 def merge_defaults(data: dict, defaults: dict) -> dict:
@@ -97,7 +104,9 @@ def load_repo_config(file_path: Path) -> tuple[str, dict]:
         raw = yaml.safe_load(fh)
 
     if not isinstance(raw, dict):
-        raise ValueError(f"Expected a YAML mapping in {file_path}, got {type(raw).__name__}")
+        raise ValueError(
+            f"Expected a YAML mapping in {file_path}, got {type(raw).__name__}"
+        )
 
     # Use 'name' from YAML if present, otherwise derive from filename
     repo_name: str = raw.get("name") or file_path.stem
@@ -138,13 +147,54 @@ def load_all_configs(config_dir: Path) -> dict:
     return repositories
 
 
+def format_hcl_key(key: str) -> str:
+    """Render an HCL object key, quoting when required."""
+    if HCL_IDENTIFIER_RE.match(key):
+        return key
+    return json.dumps(key, ensure_ascii=False)
+
+
+def to_hcl(value, indent: int = 0) -> str:
+    """Serialize Python data structures into HCL literals."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, str):
+        return json.dumps(value, ensure_ascii=False)
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        item_indent = " " * (indent + 2)
+        closing_indent = " " * indent
+        rendered_items = [f"{item_indent}{to_hcl(item, indent + 2)}," for item in value]
+        return "[\n" + "\n".join(rendered_items) + f"\n{closing_indent}]"
+    if isinstance(value, dict):
+        if not value:
+            return "{}"
+        item_indent = " " * (indent + 2)
+        closing_indent = " " * indent
+        lines = ["{"]
+        for key, item in value.items():
+            rendered_key = format_hcl_key(str(key))
+            rendered_value = to_hcl(item, indent + 2)
+            lines.append(f"{item_indent}{rendered_key} = {rendered_value}")
+        lines.append(f"{closing_indent}}}")
+        return "\n".join(lines)
+
+    raise TypeError(
+        f"Unsupported value type for HCL serialization: {type(value).__name__}"
+    )
+
+
 def write_tfvars(repositories: dict, output_path: Path) -> None:
-    """Write the repositories map as a .tfvars.json file."""
-    payload = {"repositories": repositories}
+    """Write the repositories map as an HCL .auto.tfvars file."""
+    payload = f"repositories = {to_hcl(repositories)}\n"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2, ensure_ascii=False)
-        fh.write("\n")
+        fh.write(payload)
     print(f"Generated: {output_path} ({len(repositories)} repositories)")
 
 
@@ -161,8 +211,8 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("src/repositories.auto.tfvars.json"),
-        help="Output tfvars JSON file path (default: src/repositories.auto.tfvars.json)",
+        default=Path("src/repositories.auto.tfvars"),
+        help="Output tfvars HCL file path (default: src/repositories.auto.tfvars)",
     )
     args = parser.parse_args()
 
@@ -170,7 +220,9 @@ def main() -> None:
     output_path: Path = args.output
 
     if not config_dir.is_dir():
-        print(f"Error: config directory '{config_dir}' does not exist.", file=sys.stderr)
+        print(
+            f"Error: config directory '{config_dir}' does not exist.", file=sys.stderr
+        )
         sys.exit(1)
 
     repositories = load_all_configs(config_dir)
