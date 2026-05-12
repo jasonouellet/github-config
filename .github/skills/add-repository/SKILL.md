@@ -37,7 +37,7 @@ delete_branch_on_merge: true
 branch_protection:
   pattern: main
   enforce_admins: false
-  require_signed_commits: false
+  require_signed_commits: true
   required_pull_request_reviews:
     required_approving_review_count: 1
 ```
