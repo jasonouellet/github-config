@@ -70,15 +70,28 @@ def validate_file(file_path: Path, validator: Draft7Validator) -> list[str]:
 
 
 def validate_all(config_dir: Path, validator: Draft7Validator) -> dict[str, list[str]]:
-    """Validate all YAML files in config_dir. Returns {relative_path: [errors]}."""
+    """
+    Validate all YAML files in config_dir.
+
+    Returns {relative_path: [errors]}, using paths relative to the current
+    working directory when possible for Sonar compatibility, and otherwise
+    falling back to paths relative to config_dir.
+    """
     results: dict[str, list[str]] = {}
 
     yaml_files = sorted(config_dir.glob("*.yaml")) + sorted(config_dir.glob("*.yml"))
     if not yaml_files:
         print(f"Warning: no YAML files found in {config_dir}", file=sys.stderr)
 
+    cwd = Path.cwd().resolve()
+    resolved_config_dir = config_dir.resolve()
+
     for yaml_file in yaml_files:
-        relative = yaml_file.as_posix()
+        resolved_yaml_file = yaml_file.resolve()
+        try:
+            relative = resolved_yaml_file.relative_to(cwd).as_posix()
+        except ValueError:
+            relative = resolved_yaml_file.relative_to(resolved_config_dir).as_posix()
         results[relative] = validate_file(yaml_file, validator)
 
     return results
