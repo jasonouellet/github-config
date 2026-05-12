@@ -3,7 +3,7 @@
 generate_tfvars.py
 
 Reads all YAML files from the config/ directory and generates a
-repositories.auto.tfvars file consumed by Terraform in src/.
+repositories.auto.tfvars file consumed by OpenTofu in src/.
 
 Usage:
     python scripts/generate_tfvars.py [--config-dir CONFIG_DIR] [--output OUTPUT]
