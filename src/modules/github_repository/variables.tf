@@ -74,12 +74,6 @@ variable "delete_branch_on_merge" {
   default     = true
 }
 
-variable "import_id" {
-  description = "Existing repo id to import"
-  type        = bool
-  default     = false
-}
-
 variable "branch_protection" {
   description = "Branch protection rule configuration. Set to null to skip."
   type = object({
