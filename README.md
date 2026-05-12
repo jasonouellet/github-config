@@ -234,6 +234,6 @@ Open the repository in VS Code and choose **Reopen in Container** (or use GitHub
 The dev container includes:
 
 - IaC tooling (OpenTofu) + TFLint
-- Python 3.12 + PyYAML + Ruff
+- Python 3.12 + PyYAML + jsonschema + Ruff
 - GitHub CLI
 - VS Code extensions: HashiCorp Terraform, Python, Ruff, YAML, GitHub Actions, GitLens
