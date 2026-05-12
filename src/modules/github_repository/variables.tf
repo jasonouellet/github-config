@@ -56,10 +56,22 @@ variable "archived" {
   default     = false
 }
 
-variable "import_id" {
-  description = "Existing repo id to import"
+variable "has_projects" {
+  description = "Enable the Projects tab for the repository."
   type        = bool
-  default     = null
+  default     = false
+}
+
+variable "has_wiki" {
+  description = "Enable the Wiki tab for the repository."
+  type        = bool
+  default     = false
+}
+
+variable "delete_branch_on_merge" {
+  description = "Automatically delete head branches when pull requests are merged."
+  type        = bool
+  default     = true
 }
 
 variable "branch_protection" {
@@ -67,7 +79,7 @@ variable "branch_protection" {
   type = object({
     pattern                = optional(string, "main")
     enforce_admins         = optional(bool, false)
-    require_signed_commits = optional(bool, false)
+    require_signed_commits = optional(bool, true)
     required_status_checks = optional(object({
       strict   = optional(bool, true)
       contexts = optional(list(string), [])
