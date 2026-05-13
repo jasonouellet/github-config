@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- CI workflow consolidated into a single `iac` job for validate, tests, and plan to reduce setup latency and duplicate artifact downloads.
+- CI job and step display names use generic IaC wording instead of tool-specific naming.
+- CD workflow now supports manual execution via `workflow_dispatch` using `ci_run_id` input for branch debugging.
+
+### Fixed
+
+- CD now performs a pre-apply GitHub App token permission check and fails early with an explicit message when administration access is missing.
+
 ## [0.2.0] - 2026-05-07
 
 ### Added
