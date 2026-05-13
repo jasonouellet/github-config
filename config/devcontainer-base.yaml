@@ -1,0 +1,14 @@
+# Configuration for repository: devcontainer-base
+name: devcontainer-base
+description: "Base development container"
+visibility: public
+is_template: false
+auto_init: false
+gitignore_template: null
+license_template: null
+topics: []
+archived: false
+has_projects: true
+has_wiki: true
+delete_branch_on_merge: false
+import_id: true

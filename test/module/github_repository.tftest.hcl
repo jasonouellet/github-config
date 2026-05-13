@@ -23,7 +23,7 @@ run "minimal_repository" {
 }
 
 # ---------------------------------------------------------------------------
-# Test: public repository with branch protection
+# Test: public repository with ruleset
 # ---------------------------------------------------------------------------
 run "full_repository" {
   command = plan
@@ -33,20 +33,28 @@ run "full_repository" {
     description = "A fully configured test repository."
     visibility  = "public"
     topics      = ["terraform", "test"]
-    branch_protection = {
-      pattern                = "main"
-      enforce_admins         = false
-      require_signed_commits = true
-      required_status_checks = {
-        strict   = true
-        contexts = ["ci/test"]
+    rulesets = [{
+      name        = "main"
+      target      = "branch"
+      enforcement = "active"
+      conditions = {
+        ref_name = {
+          include = ["~DEFAULT_BRANCH"]
+          exclude = []
+        }
       }
-      required_pull_request_reviews = {
-        dismiss_stale_reviews           = true
-        require_code_owner_reviews      = false
-        required_approving_review_count = 1
+      rules = {
+        required_signatures = true
+        pull_request = {
+          required_approving_review_count   = 1
+          dismiss_stale_reviews_on_push     = true
+          require_code_owner_review         = false
+          require_last_push_approval        = false
+          required_review_thread_resolution = false
+          allowed_merge_methods             = ["merge", "squash", "rebase"]
+        }
       }
-    }
+    }]
   }
 
   assert {

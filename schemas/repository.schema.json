@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://raw.githubusercontent.com/jasonouellet/github-config/main/schemas/repository.schema.json",
   "title": "GitHub Repository Configuration",
-  "description": "Schema v1.0.2 — validates repository configuration files in the config/ directory.",
+  "description": "Schema v1.1.0 — validates repository configuration files in the config/ directory.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -64,81 +64,238 @@
       "type": ["boolean", "null"],
       "description": "Set to true to import an existing repository into OpenTofu state before apply."
     },
-    "branch_protection": {
-      "description": "Branch protection settings, or null to disable.",
-      "oneOf": [
-        { "type": "null" },
-        { "$ref": "#/definitions/branch_protection" }
-      ]
+    "rulesets": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ruleset" },
+      "description": "Repository rulesets managed via github_repository_ruleset."
     }
   },
   "definitions": {
-    "branch_protection": {
+
+    "ruleset": {
       "type": "object",
       "additionalProperties": false,
+      "required": ["name", "rules"],
       "properties": {
-        "pattern": {
+        "name": {
           "type": "string",
           "minLength": 1,
-          "description": "Branch name or pattern to protect."
+          "description": "Ruleset name."
         },
-        "enforce_admins": {
-          "type": "boolean",
-          "description": "Enforce branch protection rules for repository administrators."
+        "target": {
+          "type": "string",
+          "enum": ["branch", "tag", "push"],
+          "description": "Ruleset target."
         },
-        "require_signed_commits": {
-          "type": "boolean",
-          "description": "Require GPG-signed commits on this branch."
+        "enforcement": {
+          "type": "string",
+          "enum": ["disabled", "active", "evaluate"],
+          "description": "Ruleset enforcement mode."
+        },
+        "import_id": {
+          "type": ["integer", "null"],
+          "description": "Existing GitHub ruleset numeric ID to import."
+        },
+        "bypass_actors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ruleset_bypass_actor" }
+        },
+        "conditions": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/ruleset_conditions" }
+          ]
+        },
+        "rules": {
+          "$ref": "#/definitions/ruleset_rules"
+        }
+      }
+    },
+    "ruleset_bypass_actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_type", "bypass_mode"],
+      "properties": {
+        "actor_id": {
+          "type": ["integer", "null"]
+        },
+        "actor_type": {
+          "type": "string"
+        },
+        "bypass_mode": {
+          "type": "string",
+          "enum": ["always", "pull_request", "exempt"]
+        }
+      }
+    },
+    "ruleset_conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref_name"],
+      "properties": {
+        "ref_name": {
+          "$ref": "#/definitions/ruleset_ref_name"
+        }
+      }
+    },
+    "ruleset_ref_name": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["include", "exclude"],
+      "properties": {
+        "include": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "exclude": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "ruleset_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "creation": { "type": ["boolean", "null"] },
+        "update": { "type": ["boolean", "null"] },
+        "deletion": { "type": ["boolean", "null"] },
+        "required_linear_history": { "type": ["boolean", "null"] },
+        "required_signatures": { "type": ["boolean", "null"] },
+        "non_fast_forward": { "type": ["boolean", "null"] },
+        "update_allows_fetch_and_merge": { "type": ["boolean", "null"] },
+        "pull_request": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/ruleset_rule_pull_request" }
+          ]
         },
         "required_status_checks": {
-          "description": "Required status checks before merging, or null to disable.",
           "oneOf": [
             { "type": "null" },
-            { "$ref": "#/definitions/required_status_checks" }
+            { "$ref": "#/definitions/ruleset_rule_required_status_checks" }
           ]
         },
-        "required_pull_request_reviews": {
-          "description": "Required pull request reviews before merging, or null to disable.",
+        "required_code_scanning": {
           "oneOf": [
             { "type": "null" },
-            { "$ref": "#/definitions/required_pull_request_reviews" }
+            { "$ref": "#/definitions/ruleset_rule_required_code_scanning" }
+          ]
+        },
+        "copilot_code_review": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/ruleset_rule_copilot_code_review" }
           ]
         }
       }
     },
-    "required_status_checks": {
+    "ruleset_rule_pull_request": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "strict": {
-          "type": "boolean",
-          "description": "Require the branch to be up-to-date before merging."
-        },
-        "contexts": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "List of required CI check names."
-        }
-      }
-    },
-    "required_pull_request_reviews": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "dismiss_stale_reviews": {
-          "type": "boolean",
-          "description": "Dismiss stale pull request approvals when new commits are pushed."
-        },
-        "require_code_owner_reviews": {
-          "type": "boolean",
-          "description": "Require review from designated code owners."
-        },
+        "dismiss_stale_reviews_on_push": { "type": "boolean" },
+        "require_code_owner_review": { "type": "boolean" },
+        "require_last_push_approval": { "type": "boolean" },
         "required_approving_review_count": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 6,
-          "description": "Minimum number of approvals required before merging."
+          "maximum": 6
+        },
+        "required_review_thread_resolution": { "type": "boolean" },
+        "allowed_merge_methods": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["merge", "squash", "rebase"] },
+          "minItems": 1
+        },
+        "required_reviewers": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ruleset_required_reviewer_group" }
         }
+      }
+    },
+    "ruleset_required_reviewer_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_patterns", "minimum_approvals", "reviewer"],
+      "properties": {
+        "file_patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "minimum_approvals": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reviewer": {
+          "$ref": "#/definitions/ruleset_reviewer"
+        }
+      }
+    },
+    "ruleset_reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "integer" },
+        "type": { "type": "string" }
+      }
+    },
+    "ruleset_rule_required_status_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "strict_required_status_checks_policy": { "type": "boolean" },
+        "do_not_enforce_on_create": { "type": "boolean" },
+        "required_check": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ruleset_required_check" }
+        }
+      }
+    },
+    "ruleset_required_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context"],
+      "properties": {
+        "context": { "type": "string" },
+        "integration_id": { "type": ["integer", "null"] }
+      }
+    },
+    "ruleset_rule_required_code_scanning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_code_scanning_tool"],
+      "properties": {
+        "required_code_scanning_tool": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ruleset_code_scanning_tool" },
+          "minItems": 1
+        }
+      }
+    },
+    "ruleset_code_scanning_tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "alerts_threshold", "security_alerts_threshold"],
+      "properties": {
+        "tool": { "type": "string" },
+        "alerts_threshold": {
+          "type": "string",
+          "enum": ["none", "errors", "errors_and_warnings", "all"]
+        },
+        "security_alerts_threshold": {
+          "type": "string",
+          "enum": ["none", "critical", "high_or_higher", "medium_or_higher", "all"]
+        }
+      }
+    },
+    "ruleset_rule_copilot_code_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "review_on_push": { "type": "boolean" },
+        "review_draft_pull_requests": { "type": "boolean" }
       }
     }
   }

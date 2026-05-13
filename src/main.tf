@@ -14,5 +14,5 @@ module "repositories" {
   has_projects           = each.value.has_projects
   has_wiki               = each.value.has_wiki
   delete_branch_on_merge = each.value.delete_branch_on_merge
-  branch_protection      = each.value.branch_protection
+  rulesets               = each.value.rulesets
 }

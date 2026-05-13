@@ -44,26 +44,58 @@ SCHEMA_DEFAULTS = {
     "has_wiki": False,
     "delete_branch_on_merge": True,
     "import_id": None,
-    "branch_protection": None,
+    "rulesets": [],
 }
 
-BRANCH_PROTECTION_DEFAULTS = {
-    "pattern": "main",
-    "enforce_admins": False,
-    "require_signed_commits": True,
-    "required_status_checks": None,
-    "required_pull_request_reviews": None,
+RULESET_DEFAULTS = {
+    "target": "branch",
+    "enforcement": "active",
+    "import_id": None,
+    "bypass_actors": [],
+    "conditions": {
+        "ref_name": {
+            "include": ["~DEFAULT_BRANCH"],
+            "exclude": [],
+        }
+    },
+    "rules": {
+        "creation": None,
+        "update": None,
+        "deletion": None,
+        "required_linear_history": None,
+        "required_signatures": None,
+        "non_fast_forward": None,
+        "update_allows_fetch_and_merge": None,
+        "pull_request": None,
+        "required_status_checks": None,
+        "required_code_scanning": None,
+        "copilot_code_review": None,
+    },
 }
 
-REQUIRED_STATUS_CHECKS_DEFAULTS = {
-    "strict": True,
-    "contexts": [],
+RULESET_PULL_REQUEST_DEFAULTS = {
+    "dismiss_stale_reviews_on_push": False,
+    "require_code_owner_review": False,
+    "require_last_push_approval": False,
+    "required_approving_review_count": 0,
+    "required_review_thread_resolution": False,
+    "allowed_merge_methods": ["merge", "squash", "rebase"],
+    "required_reviewers": [],
 }
 
-REQUIRED_PR_REVIEWS_DEFAULTS = {
-    "dismiss_stale_reviews": True,
-    "require_code_owner_reviews": False,
-    "required_approving_review_count": 1,
+RULESET_REQUIRED_STATUS_CHECKS_DEFAULTS = {
+    "strict_required_status_checks_policy": True,
+    "do_not_enforce_on_create": False,
+    "required_check": [],
+}
+
+RULESET_REQUIRED_CODE_SCANNING_DEFAULTS = {
+    "required_code_scanning_tool": [],
+}
+
+RULESET_COPILOT_CODE_REVIEW_DEFAULTS = {
+    "review_on_push": False,
+    "review_draft_pull_requests": False,
 }
 
 HCL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_]\w*$")
@@ -78,24 +110,64 @@ def merge_defaults(data: dict, defaults: dict) -> dict:
     return result
 
 
-def parse_branch_protection(bp_data: dict) -> dict | None:
-    """Normalize branch_protection block with nested defaults."""
-    if bp_data is None:
-        return None
+def parse_rulesets(rulesets_data: list[dict] | None) -> list[dict]:
+    """Normalize repository rulesets with nested defaults."""
+    if not rulesets_data:
+        return []
 
-    bp = merge_defaults(bp_data, BRANCH_PROTECTION_DEFAULTS)
+    normalized: list[dict] = []
+    for ruleset_data in rulesets_data:
+        ruleset = merge_defaults(ruleset_data, RULESET_DEFAULTS)
 
-    if bp.get("required_status_checks") is not None:
-        bp["required_status_checks"] = merge_defaults(
-            bp["required_status_checks"], REQUIRED_STATUS_CHECKS_DEFAULTS
-        )
+        conditions = ruleset.get("conditions")
+        if conditions is None:
+            ruleset["conditions"] = None
+        else:
+            ref_name = conditions.get("ref_name")
+            if ref_name is None:
+                ruleset["conditions"] = None
+            else:
+                ruleset["conditions"] = {
+                    "ref_name": {
+                        "include": ref_name.get("include", ["~DEFAULT_BRANCH"]),
+                        "exclude": ref_name.get("exclude", []),
+                    }
+                }
 
-    if bp.get("required_pull_request_reviews") is not None:
-        bp["required_pull_request_reviews"] = merge_defaults(
-            bp["required_pull_request_reviews"], REQUIRED_PR_REVIEWS_DEFAULTS
-        )
+        rules = ruleset.get("rules")
+        if rules is None:
+            ruleset["rules"] = None
+        else:
+            rules = merge_defaults(rules, RULESET_DEFAULTS["rules"])
 
-    return bp
+            if rules.get("pull_request") is not None:
+                rules["pull_request"] = merge_defaults(
+                    rules["pull_request"], RULESET_PULL_REQUEST_DEFAULTS
+                )
+
+            if rules.get("required_status_checks") is not None:
+                rules["required_status_checks"] = merge_defaults(
+                    rules["required_status_checks"],
+                    RULESET_REQUIRED_STATUS_CHECKS_DEFAULTS,
+                )
+
+            if rules.get("required_code_scanning") is not None:
+                rules["required_code_scanning"] = merge_defaults(
+                    rules["required_code_scanning"],
+                    RULESET_REQUIRED_CODE_SCANNING_DEFAULTS,
+                )
+
+            if rules.get("copilot_code_review") is not None:
+                rules["copilot_code_review"] = merge_defaults(
+                    rules["copilot_code_review"],
+                    RULESET_COPILOT_CODE_REVIEW_DEFAULTS,
+                )
+
+            ruleset["rules"] = rules
+
+        normalized.append(ruleset)
+
+    return normalized
 
 
 def load_repo_config(file_path: Path) -> tuple[str, dict]:
@@ -115,7 +187,7 @@ def load_repo_config(file_path: Path) -> tuple[str, dict]:
     repo_name: str = raw.get("name") or file_path.stem
 
     config = merge_defaults(raw, SCHEMA_DEFAULTS)
-    config["branch_protection"] = parse_branch_protection(raw.get("branch_protection"))
+    config["rulesets"] = parse_rulesets(raw.get("rulesets"))
 
     # Remove 'name' key from the config value – it is used as the map key
     config.pop("name", None)

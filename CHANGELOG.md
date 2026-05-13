@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Repository configuration now uses rulesets only for branch governance; legacy `branch_protection` support was removed from the schema, generator, module, and imports.
+- Existing repository imports now support `github_repository_ruleset` resources through per-ruleset `import_id` values.
+
 ## [0.2.1] - 2026-05-13
 
 ### Changed

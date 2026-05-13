@@ -1,0 +1,54 @@
+# Configuration for repository: wsl-ubuntu-bootstrap
+name: wsl-ubuntu-bootstrap
+description: "Bootstrap an Ubuntu WSL new images with Ansible scripts"
+visibility: public
+is_template: false
+auto_init: false
+gitignore_template: null
+license_template: null
+topics: []
+archived: false
+has_projects: true
+has_wiki: true
+delete_branch_on_merge: false
+import_id: true
+rulesets:
+  - name: main
+    target: branch
+    enforcement: active
+    import_id: 12380967
+    bypass_actors:
+      - actor_id: 5
+        actor_type: RepositoryRole
+        bypass_mode: always
+    conditions:
+      ref_name:
+        include:
+          - "~DEFAULT_BRANCH"
+        exclude: []
+    rules:
+      deletion: true
+      required_signatures: true
+      pull_request:
+        required_approving_review_count: 0
+        dismiss_stale_reviews_on_push: false
+        require_code_owner_review: false
+        require_last_push_approval: false
+        required_review_thread_resolution: true
+        allowed_merge_methods:
+          - rebase
+          - squash
+      required_code_scanning:
+        required_code_scanning_tool:
+          - tool: CodeQL
+            security_alerts_threshold: high_or_higher
+            alerts_threshold: errors
+          - tool: SonarCloud
+            security_alerts_threshold: high_or_higher
+            alerts_threshold: errors
+          - tool: Trivy
+            security_alerts_threshold: high_or_higher
+            alerts_threshold: errors
+      copilot_code_review:
+        review_on_push: false
+        review_draft_pull_requests: false
