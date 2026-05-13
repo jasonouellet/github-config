@@ -131,11 +131,12 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          if ! gh api repos/${{ github.repository }}/actions/permissions >/dev/null 2>&1; then
-            echo "::error::GitHub App token lacks repository administration access for ${{ github.repository }}."
-            echo "::error::Grant 'Repository permissions > Administration: Read and write' and ensure the app is installed on this repository."
+          response="$(gh api repos/${{ github.repository }}/actions/permissions 2>&1)" || {
+            echo "::error::GitHub App token preflight failed while checking repository permissions for ${{ github.repository }}."
+            echo "::error::API response: $response"
+            echo "::error::Ensure the app is installed on this repository and has required repository permissions (including Administration: Read and write)."
             exit 1
-          fi
+          }
 
       - name: OpenTofu Init
         run: tofu init
@@ -149,4 +150,6 @@ jobs:
           echo "## OpenTofu Apply Summary" >> $GITHUB_STEP_SUMMARY
           echo "Applied at: $(date -u)" >> $GITHUB_STEP_SUMMARY
           echo "Triggered by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "Applied commit: ${{ steps.plan-source.outputs.plan_head_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "Plan artifact: ${{ steps.plan-source.outputs.plan_artifact_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "Source CI run id: ${{ steps.plan-source.outputs.plan_run_id }}" >> $GITHUB_STEP_SUMMARY
