@@ -98,7 +98,7 @@ Each error line shows the YAML field path and a description, for example:
 ```
 [FAIL] config/my-repo.yaml
        - visibility: 'staging' is not one of ['public', 'private', 'internal']
-       - branch_protection.required_approving_review_count: 10 is greater than the maximum of 6
+  - rulesets.0.rules.pull_request.required_approving_review_count: 10 is greater than the maximum of 6
 ```
 
 Fix the flagged fields in the YAML file to match the allowed values described in the
@@ -172,11 +172,19 @@ auto_init: true
 import_id: true            # optional: set true when repo already exists and must be imported
 topics:
   - my-topic
-branch_protection:
-  pattern: main
-  require_signed_commits: false
-  required_pull_request_reviews:
-    required_approving_review_count: 1
+rulesets:
+  - name: main
+    target: branch
+    enforcement: active
+    conditions:
+      ref_name:
+        include:
+          - "~DEFAULT_BRANCH"
+        exclude: []
+    rules:
+      required_signatures: false
+      pull_request:
+        required_approving_review_count: 1
 ```
 
 2. Regenerate the tfvars file:
@@ -211,20 +219,20 @@ tofu plan
 | `topics` | list | `[]` | Repository topics |
 | `archived` | bool | `false` | Archive (make read-only) the repository |
 | `import_id` | bool | `null` | Set to `true` to import an existing repo into OpenTofu state before apply |
-| `branch_protection` | object | `null` | See below |
+| `rulesets` | list | `[]` | Repository rulesets managed by `github_repository_ruleset` |
 
-### branch_protection
+### rulesets
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `pattern` | string | `"main"` | Branch name pattern |
-| `enforce_admins` | bool | `false` | Enforce rules for admins |
-| `require_signed_commits` | bool | `true` | Require GPG-signed commits |
-| `required_status_checks.strict` | bool | `true` | Require up-to-date branch |
-| `required_status_checks.contexts` | list | `[]` | Required CI check names |
-| `required_pull_request_reviews.dismiss_stale_reviews` | bool | `true` | Dismiss stale approvals on new commits |
-| `required_pull_request_reviews.require_code_owner_reviews` | bool | `false` | Require CODEOWNERS review |
-| `required_pull_request_reviews.required_approving_review_count` | number | `1` | Minimum approvals required |
+| `name` | string | *(required)* | Ruleset name |
+| `target` | string | `"branch"` | `branch`, `tag`, or `push` |
+| `enforcement` | string | `"active"` | `disabled`, `active`, or `evaluate` |
+| `import_id` | number | `null` | Existing GitHub ruleset ID for import |
+| `conditions.ref_name.include` | list | `["~DEFAULT_BRANCH"]` | Refs included by the ruleset |
+| `conditions.ref_name.exclude` | list | `[]` | Refs excluded from the ruleset |
+| `rules.required_signatures` | bool | `null` | Require signed commits |
+| `rules.pull_request.required_approving_review_count` | number | `0` | Minimum approvals required |
 
 ## Running Tests
 

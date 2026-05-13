@@ -1,0 +1,14 @@
+# Configuration for repository: template-base
+name: template-base
+description: "Base template to create new repo"
+visibility: public
+is_template: false
+auto_init: false
+gitignore_template: null
+license_template: null
+topics: []
+archived: false
+has_projects: true
+has_wiki: true
+delete_branch_on_merge: false
+import_id: true

@@ -34,12 +34,19 @@ archived: false
 has_projects: false
 has_wiki: false
 delete_branch_on_merge: true
-branch_protection:
-  pattern: main
-  enforce_admins: false
-  require_signed_commits: true
-  required_pull_request_reviews:
-    required_approving_review_count: 1
+rulesets:
+  - name: main
+    target: branch
+    enforcement: active
+    conditions:
+      ref_name:
+        include:
+          - "~DEFAULT_BRANCH"
+        exclude: []
+    rules:
+      required_signatures: true
+      pull_request:
+        required_approving_review_count: 1
 ```
 
 **Existing repository** (imported into state):
@@ -59,7 +66,7 @@ has_projects: false        # match actual GitHub setting
 has_wiki: false            # match actual GitHub setting
 delete_branch_on_merge: false  # match actual GitHub setting
 import_id: true
-branch_protection: null    # set after import if needed
+rulesets: []               # add rulesets with import_id when they already exist
 ```
 
 > For an existing repo: fetch the actual settings with `gh api repos/<owner>/<repo-name>` and align all fields to avoid drift.

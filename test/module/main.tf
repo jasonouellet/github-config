@@ -27,5 +27,5 @@ module "under_test" {
   license_template   = var.license_template
   topics             = var.topics
   archived           = var.archived
-  branch_protection  = var.branch_protection
+  rulesets           = var.rulesets
 }

@@ -5,10 +5,18 @@ locals {
     if config.import_id == true
   }
 
-  import_branch_protection_repos = {
-    for name, config in local.import_repos :
-    name => config
-    if config.branch_protection != null
+  import_rulesets = {
+    for item in flatten([
+      for repo_name, config in local.import_repos : [
+        for ruleset in try(config.rulesets, []) : {
+          key       = "${repo_name}:${ruleset.name}"
+          repo_name = repo_name
+          ruleset   = ruleset
+        }
+      ]
+    ]) :
+    item.key => item
+    if try(item.ruleset.import_id, null) != null
   }
 }
 
@@ -20,15 +28,15 @@ import {
 }
 
 import {
-  for_each = local.import_branch_protection_repos
-
-  to = module.repositories[each.key].github_branch_protection.this[0]
-  id = "${each.key}:${each.value.branch_protection.pattern}"
-}
-
-import {
   for_each = local.import_repos
 
   to = module.repositories[each.key].github_repository_vulnerability_alerts.this
   id = each.key
+}
+
+import {
+  for_each = local.import_rulesets
+
+  to = module.repositories[each.value.repo_name].github_repository_ruleset.this[each.value.ruleset.name]
+  id = "${each.value.repo_name}:${each.value.ruleset.import_id}"
 }
