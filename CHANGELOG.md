@@ -9,15 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.2.1] - 2026-05-13
+
 ### Changed
 
-- CI workflow consolidated into a single `iac` job for validate, tests, and plan to reduce setup latency and duplicate artifact downloads.
-- CI job and step display names use generic IaC wording instead of tool-specific naming.
-- CD workflow now supports manual execution via `workflow_dispatch` using `ci_run_id` input for branch debugging.
+- CI pipeline now uses a consolidated `iac` job for init/validate, tests, and plan, reducing duplicate setup and artifact handoffs.
+- CI/CD job and step display names were aligned to generic IaC wording.
+- CD now supports controlled manual execution via `workflow_dispatch` for branch debugging.
+- README and workflow documentation were updated to reflect the new CI/CD behavior.
 
 ### Fixed
 
-- CD now performs a pre-apply GitHub App token permission check and fails early with an explicit message when administration access is missing.
+- CD now validates manual run source metadata (workflow, conclusion, repository, and plan artifact derivation) before apply.
+- CD now applies the generated `terraform.tfplan` artifact consistently.
+- CD permission preflight now returns actionable diagnostics, and apply summaries now report the exact applied commit/run/artifact for auditability.
 
 ## [0.2.0] - 2026-05-07
 

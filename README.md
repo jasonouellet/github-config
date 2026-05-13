@@ -155,6 +155,7 @@ When preparing a release, move relevant entries from `## Unreleased` to a new da
   - Can be started manually (`workflow_dispatch`) for debugging from other branches.
   - Manual trigger requires:
     - `ci_run_id`: CI run ID that produced the plan artifact.
+    - Start the workflow from the same commit as the selected CI run (`head_sha`).
   - Optional manual input:
     - `plan_artifact_name`: artifact name. Usually omit this and let the workflow derive the default from the CI run's `head_sha` (typically `tfplan-<sha>`).
 
