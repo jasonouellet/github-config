@@ -147,8 +147,8 @@ When preparing a release, move relevant entries from `## Unreleased` to a new da
 
 - CI (`.github/workflows/ci.yml`):
   - Validates YAML config schema.
-  - Generates tfvars artifact.
-  - Runs a single `iac` job (format check, init/validate, tests, and plan).
+  - Runs `generate-tfvars` to generate the tfvars artifact and perform `tofu fmt -check -recursive`.
+  - Runs `iac` for init/validate, tests, and plan.
   - Uploads approved plan artifact as `tfplan-<sha>` when plan succeeds.
 - CD (`.github/workflows/cd.yml`):
   - Auto-triggered by successful CI on `main` (`workflow_run`).
