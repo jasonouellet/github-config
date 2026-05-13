@@ -5,6 +5,16 @@ on:
     workflows: ["CI"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: "CI workflow run ID that produced the tfplan artifact"
+        required: true
+        type: string
+      plan_artifact_name:
+        description: "Plan artifact name to download (example: tfplan-<sha>)"
+        required: true
+        type: string
 
 jobs:
   tofu-apply:
@@ -15,8 +25,11 @@ jobs:
       contents: read
     environment: production
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      ) || github.event_name == 'workflow_dispatch'
     defaults:
       run:
         working-directory: src
@@ -30,8 +43,8 @@ jobs:
       - name: Download approved plan artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: tfplan-${{ github.event.workflow_run.head_sha }}
-          run-id: ${{ github.event.workflow_run.id }}
+          name: ${{ github.event_name == 'workflow_dispatch' && inputs.plan_artifact_name || format('tfplan-{0}', github.event.workflow_run.head_sha) }}
+          run-id: ${{ github.event_name == 'workflow_dispatch' && inputs.ci_run_id || github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: src
 
@@ -50,6 +63,17 @@ jobs:
 
       - name: Export OpenTofu GitHub token
         run: echo "TF_VAR_github_token=${{ steps.app-token.outputs.token }}" >> "$GITHUB_ENV"
+
+      - name: Verify GitHub App token access
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          is_admin="$(gh api repos/${{ github.repository }} --jq '.permissions.admin // false')"
+          if [[ "$is_admin" != "true" ]]; then
+            echo "::error::GitHub App token lacks repository administration access for ${{ github.repository }}."
+            echo "::error::Grant 'Repository permissions > Administration: Read and write' and ensure the app is installed on this repository."
+            exit 1
+          fi
 
       - name: OpenTofu Init
         run: tofu init
