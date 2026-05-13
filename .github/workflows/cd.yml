@@ -41,11 +41,13 @@ jobs:
         id: plan-source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISPATCH_CI_RUN_ID: ${{ inputs.ci_run_id }}
+          DISPATCH_PLAN_ARTIFACT_NAME: ${{ inputs.plan_artifact_name }}
         run: |
           set -euo pipefail
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            run_id="${{ inputs.ci_run_id }}"
+            run_id="$DISPATCH_CI_RUN_ID"
 
             workflow_name="$(gh api repos/${{ github.repository }}/actions/runs/"$run_id" --jq '.name')"
             conclusion="$(gh api repos/${{ github.repository }}/actions/runs/"$run_id" --jq '.conclusion')"
@@ -70,7 +72,13 @@ jobs:
             fi
 
             expected_artifact="tfplan-$head_sha"
-            input_artifact="${{ inputs.plan_artifact_name }}"
+            input_artifact="$DISPATCH_PLAN_ARTIFACT_NAME"
+
+            if [[ "$head_sha" != "${{ github.sha }}" ]]; then
+              echo "::error::workflow_dispatch must be started on the same commit as the selected CI run."
+              echo "::error::Current workflow commit is '${{ github.sha }}' but ci_run_id=$run_id head_sha is '$head_sha'."
+              exit 1
+            fi
 
             if [[ -n "$input_artifact" && "$input_artifact" != "$expected_artifact" ]]; then
               echo "::error::plan_artifact_name mismatch. Expected '$expected_artifact' from ci_run_id=$run_id."
@@ -92,7 +100,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ steps.plan-source.outputs.plan_head_sha }}
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Download approved plan artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
