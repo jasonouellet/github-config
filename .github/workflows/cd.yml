@@ -49,10 +49,11 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             run_id="$DISPATCH_CI_RUN_ID"
 
-            workflow_name="$(gh api repos/${{ github.repository }}/actions/runs/"$run_id" --jq '.name')"
-            conclusion="$(gh api repos/${{ github.repository }}/actions/runs/"$run_id" --jq '.conclusion')"
-            head_repo="$(gh api repos/${{ github.repository }}/actions/runs/"$run_id" --jq '.head_repository.full_name')"
-            head_sha="$(gh api repos/${{ github.repository }}/actions/runs/"$run_id" --jq '.head_sha')"
+            run_json="$(gh api repos/${{ github.repository }}/actions/runs/"$run_id")"
+            workflow_name="$(jq -r '.name' <<< "$run_json")"
+            conclusion="$(jq -r '.conclusion' <<< "$run_json")"
+            head_repo="$(jq -r '.head_repository.full_name' <<< "$run_json")"
+            head_sha="$(jq -r '.head_sha' <<< "$run_json")"
 
             if [[ "$workflow_name" != "CI" ]]; then
               echo "::error::workflow_dispatch requires a run from the CI workflow."
