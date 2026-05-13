@@ -16,8 +16,8 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 │   └── devcontainer.json
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                  # CI: schema validation, format, validate, test, plan on PRs
-│       └── cd.yml                  # CD: apply on merge to main
+│       ├── ci.yml                  # CI: schema validation + consolidated IaC checks and plan
+│       └── cd.yml                  # CD: apply on CI success for main (or manual debug trigger)
 ├── config/                         # One YAML file per managed GitHub repository
 │   ├── github-config.yaml
 │   └── example-service.yaml
@@ -47,7 +47,7 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 - [OpenTofu](https://opentofu.org/docs/intro/install/) >= 1.6
 - Python >= 3.10 with `pyyaml` and `jsonschema` installed (`pip install pyyaml jsonschema`)
 - [pre-commit](https://pre-commit.com/) installed (`pip install pre-commit`)
-- A GitHub Personal Access Token with `repo` and `admin:org` scopes
+- A GitHub token with repository administration permissions for local plan/apply operations
 
 ## Pre-commit
 
@@ -142,6 +142,22 @@ Release flow on `main`:
 5. Workflow publishes a GitHub Release using the matching changelog section.
 
 When preparing a release, move relevant entries from `## Unreleased` to a new dated version section in `CHANGELOG.md`.
+
+## CI/CD Workflows
+
+- CI (`.github/workflows/ci.yml`):
+  - Validates YAML config schema.
+  - Runs `generate-tfvars` to generate the tfvars artifact and perform `tofu fmt -check -recursive`.
+  - Runs `iac` for init/validate, tests, and plan.
+  - Uploads approved plan artifact as `tfplan-<sha>` when plan succeeds.
+- CD (`.github/workflows/cd.yml`):
+  - Auto-triggered by successful CI on `main` (`workflow_run`).
+  - Can be started manually (`workflow_dispatch`) for debugging from other branches.
+  - Manual trigger requires:
+    - `ci_run_id`: CI run ID that produced the plan artifact.
+    - Start the workflow from the same commit as the selected CI run (`head_sha`).
+  - Optional manual input:
+    - `plan_artifact_name`: artifact name. Usually omit this and let the workflow derive the default from the CI run's `head_sha` (typically `tfplan-<sha>`).
 
 ## Adding or Updating a Repository
 
