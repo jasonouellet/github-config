@@ -23,7 +23,15 @@ variable "repositories" {
     has_projects           = optional(bool, false)
     has_wiki               = optional(bool, false)
     delete_branch_on_merge = optional(bool, true)
-    import_id              = optional(bool, false)
+    has_issues             = optional(bool, true)
+    allow_rebase_merge     = optional(bool, true)
+
+    merge_commit_title          = optional(string, null)
+    merge_commit_message        = optional(string, null)
+    squash_merge_commit_title   = optional(string, null)
+    squash_merge_commit_message = optional(string, null)
+
+    import_id = optional(bool, false)
     rulesets = optional(list(object({
       name        = string
       target      = optional(string, "branch")

@@ -1,8 +1,18 @@
 resource "github_repository" "this" {
-  name                   = var.name
-  description            = var.description
-  visibility             = var.visibility
-  has_issues             = true
+  name                = var.name
+  description         = var.description
+  visibility          = var.visibility
+  has_issues          = var.has_issues
+  allow_auto_merge    = true
+  allow_merge_commit  = false
+  allow_rebase_merge  = var.allow_rebase_merge
+  allow_update_branch = true
+
+  merge_commit_title          = var.merge_commit_title
+  merge_commit_message        = var.merge_commit_message
+  squash_merge_commit_title   = var.squash_merge_commit_title
+  squash_merge_commit_message = var.squash_merge_commit_message
+
   has_projects           = var.has_projects
   has_wiki               = var.has_wiki
   is_template            = var.is_template

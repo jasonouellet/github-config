@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://raw.githubusercontent.com/jasonouellet/github-config/main/schemas/repository.schema.json",
   "title": "GitHub Repository Configuration",
-  "description": "Schema v1.1.0 — validates repository configuration files in the config/ directory.",
+  "description": "Schema v1.2.0 — validates repository configuration files in the config/ directory.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -59,6 +59,34 @@
     "delete_branch_on_merge": {
       "type": "boolean",
       "description": "Automatically delete head branches when pull requests are merged."
+    },
+    "has_issues": {
+      "type": "boolean",
+      "description": "Enable the Issues tab for the repository."
+    },
+    "allow_rebase_merge": {
+      "type": "boolean",
+      "description": "Allow rebase merges on pull requests."
+    },
+    "merge_commit_title": {
+      "type": ["string", "null"],
+      "enum": ["PR_TITLE", "MERGE_MESSAGE", null],
+      "description": "Default merge commit title. Left to the GitHub default when omitted."
+    },
+    "merge_commit_message": {
+      "type": ["string", "null"],
+      "enum": ["PR_TITLE", "PR_BODY", "BLANK", null],
+      "description": "Default merge commit message. Left to the GitHub default when omitted."
+    },
+    "squash_merge_commit_title": {
+      "type": ["string", "null"],
+      "enum": ["PR_TITLE", "COMMIT_OR_PR_TITLE", null],
+      "description": "Default squash commit title. Left to the GitHub default when omitted."
+    },
+    "squash_merge_commit_message": {
+      "type": ["string", "null"],
+      "enum": ["PR_BODY", "COMMIT_MESSAGES", "BLANK", null],
+      "description": "Default squash commit message. Left to the GitHub default when omitted."
     },
     "import_id": {
       "type": ["boolean", "null"],

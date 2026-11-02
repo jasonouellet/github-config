@@ -74,6 +74,42 @@ variable "delete_branch_on_merge" {
   default     = true
 }
 
+variable "has_issues" {
+  description = "Enable the Issues tab for the repository."
+  type        = bool
+  default     = true
+}
+
+variable "allow_rebase_merge" {
+  description = "Allow rebase merges on pull requests."
+  type        = bool
+  default     = true
+}
+
+variable "merge_commit_title" {
+  description = "Default merge commit title (null keeps the GitHub default)."
+  type        = string
+  default     = null
+}
+
+variable "merge_commit_message" {
+  description = "Default merge commit message (null keeps the GitHub default)."
+  type        = string
+  default     = null
+}
+
+variable "squash_merge_commit_title" {
+  description = "Default squash commit title (null keeps the GitHub default)."
+  type        = string
+  default     = null
+}
+
+variable "squash_merge_commit_message" {
+  description = "Default squash commit message (null keeps the GitHub default)."
+  type        = string
+  default     = null
+}
+
 variable "rulesets" {
   description = "Repository rulesets managed by github_repository_ruleset."
   type = list(object({

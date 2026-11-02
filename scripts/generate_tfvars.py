@@ -43,11 +43,18 @@ SCHEMA_DEFAULTS = {
     "has_projects": False,
     "has_wiki": False,
     "delete_branch_on_merge": True,
+    "has_issues": True,
+    "allow_rebase_merge": True,
+    "merge_commit_title": None,
+    "merge_commit_message": None,
+    "squash_merge_commit_title": None,
+    "squash_merge_commit_message": None,
     "import_id": None,
     "rulesets": [],
 }
 
 RULESET_DEFAULTS = {
+    "name": "main",
     "target": "branch",
     "enforcement": "active",
     "import_id": None,
