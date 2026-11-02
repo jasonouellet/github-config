@@ -173,63 +173,46 @@ def with_default_rulesets(rulesets_data: list[dict] | None) -> list[dict]:
     ]
 
 
+def normalize_conditions(conditions: dict | None) -> dict | None:
+    """Fill ref_name defaults, or return None when no ref_name is declared."""
+    ref_name = (conditions or {}).get("ref_name")
+    if ref_name is None:
+        return None
+    return {
+        "ref_name": {
+            "include": ref_name.get("include", ["~DEFAULT_BRANCH"]),
+            "exclude": ref_name.get("exclude", []),
+        }
+    }
+
+
+RULE_BLOCK_DEFAULTS = {
+    "pull_request": RULESET_PULL_REQUEST_DEFAULTS,
+    "required_status_checks": RULESET_REQUIRED_STATUS_CHECKS_DEFAULTS,
+    "required_code_scanning": RULESET_REQUIRED_CODE_SCANNING_DEFAULTS,
+    "copilot_code_review": RULESET_COPILOT_CODE_REVIEW_DEFAULTS,
+}
+
+
+def normalize_rules(rules: dict | None) -> dict | None:
+    """Fill rule defaults, including those of each declared rule block."""
+    if rules is None:
+        return None
+    rules = merge_defaults(rules, RULESET_DEFAULTS["rules"])
+    for block, defaults in RULE_BLOCK_DEFAULTS.items():
+        if rules.get(block) is not None:
+            rules[block] = merge_defaults(rules[block], defaults)
+    return rules
+
+
 def parse_rulesets(rulesets_data: list[dict] | None) -> list[dict]:
     """Normalize repository rulesets with nested defaults."""
-    if not rulesets_data:
-        return []
-
     normalized: list[dict] = []
-    for ruleset_data in rulesets_data:
+    for ruleset_data in rulesets_data or []:
         ruleset = merge_defaults(ruleset_data, RULESET_DEFAULTS)
-
-        conditions = ruleset.get("conditions")
-        if conditions is None:
-            ruleset["conditions"] = None
-        else:
-            ref_name = conditions.get("ref_name")
-            if ref_name is None:
-                ruleset["conditions"] = None
-            else:
-                ruleset["conditions"] = {
-                    "ref_name": {
-                        "include": ref_name.get("include", ["~DEFAULT_BRANCH"]),
-                        "exclude": ref_name.get("exclude", []),
-                    }
-                }
-
-        rules = ruleset.get("rules")
-        if rules is None:
-            ruleset["rules"] = None
-        else:
-            rules = merge_defaults(rules, RULESET_DEFAULTS["rules"])
-
-            if rules.get("pull_request") is not None:
-                rules["pull_request"] = merge_defaults(
-                    rules["pull_request"], RULESET_PULL_REQUEST_DEFAULTS
-                )
-
-            if rules.get("required_status_checks") is not None:
-                rules["required_status_checks"] = merge_defaults(
-                    rules["required_status_checks"],
-                    RULESET_REQUIRED_STATUS_CHECKS_DEFAULTS,
-                )
-
-            if rules.get("required_code_scanning") is not None:
-                rules["required_code_scanning"] = merge_defaults(
-                    rules["required_code_scanning"],
-                    RULESET_REQUIRED_CODE_SCANNING_DEFAULTS,
-                )
-
-            if rules.get("copilot_code_review") is not None:
-                rules["copilot_code_review"] = merge_defaults(
-                    rules["copilot_code_review"],
-                    RULESET_COPILOT_CODE_REVIEW_DEFAULTS,
-                )
-
-            ruleset["rules"] = rules
-
+        ruleset["conditions"] = normalize_conditions(ruleset.get("conditions"))
+        ruleset["rules"] = normalize_rules(ruleset.get("rules"))
         normalized.append(ruleset)
-
     return normalized
 
 
@@ -242,7 +225,7 @@ def load_repo_config(file_path: Path) -> tuple[str, dict]:
         raw = yaml.safe_load(fh)
 
     if not isinstance(raw, dict):
-        raise ValueError(
+        raise TypeError(
             f"Expected a YAML mapping in {file_path}, got {type(raw).__name__}"
         )
 
@@ -280,7 +263,7 @@ def load_all_configs(config_dir: Path) -> dict:
     for yaml_file in yaml_files:
         try:
             repo_name, config = load_repo_config(yaml_file)
-        except Exception as exc:
+        except (OSError, ValueError, TypeError, yaml.YAMLError) as exc:
             print(f"Error loading {yaml_file}: {exc}", file=sys.stderr)
             sys.exit(1)
 
@@ -338,6 +321,15 @@ def to_hcl(value, indent: int = 0) -> str:
     )
 
 
+def resolve_in_workspace(path: Path) -> Path:
+    """Resolve a path and ensure it stays inside the current working directory."""
+    resolved = path.resolve()
+    if not resolved.is_relative_to(Path.cwd().resolve()):
+        print(f"Error: '{path}' is outside the working directory.", file=sys.stderr)
+        sys.exit(1)
+    return resolved
+
+
 def write_tfvars(repositories: dict, output_path: Path) -> None:
     """Write the repositories map as an HCL .auto.tfvars file."""
     payload = f"repositories = {to_hcl(repositories)}\n"
@@ -365,8 +357,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    config_dir: Path = args.config_dir
-    output_path: Path = args.output
+    config_dir: Path = resolve_in_workspace(args.config_dir)
+    output_path: Path = resolve_in_workspace(args.output)
 
     if not config_dir.is_dir():
         print(

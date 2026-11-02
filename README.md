@@ -45,7 +45,7 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 ## Prerequisites
 
 - [OpenTofu](https://opentofu.org/docs/intro/install/) >= 1.6
-- Python >= 3.10 with `pyyaml` and `jsonschema` installed (`pip install pyyaml jsonschema`)
+- Python >= 3.10 with `pyyaml` and `jsonschema` installed (`pip install -r requirements.txt`)
 - [pre-commit](https://pre-commit.com/) installed (`pip install pre-commit`)
 - A GitHub token with repository administration permissions for local plan/apply operations
 

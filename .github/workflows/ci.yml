@@ -27,7 +27,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install pyyaml jsonschema
+        run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
 
       - name: Validate config files
         run: python scripts/validate_config.py --report reports/sonar-issues.json
@@ -63,7 +63,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install pyyaml
+        run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
 
       - name: Generate repositories.auto.tfvars
         run: python scripts/generate_tfvars.py
@@ -142,13 +142,7 @@ jobs:
         run: |
           set +e
           tofu plan -no-color -out=terraform.tfplan | tee plan.stdout
-          plan_exit=${PIPESTATUS[0]}
-          {
-            echo 'stdout<<EOF'
-            cat plan.stdout
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-          exit "$plan_exit"
+          exit "${PIPESTATUS[0]}"
         continue-on-error: true
 
       - name: Post Plan to PR
@@ -156,13 +150,18 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           PLAN_OUTCOME: ${{ steps.plan.outcome }}
-          PLAN_STDOUT: ${{ steps.plan.outputs.stdout }}
           GH_ACTOR: ${{ github.actor }}
           GH_EVENT_NAME: ${{ github.event_name }}
         with:
           script: |
             const planOutcome = process.env.PLAN_OUTCOME || "unknown";
-            const planStdout = process.env.PLAN_STDOUT || "";
+            const fs = require("fs");
+            // GitHub comments are limited to 65536 characters
+            const maxLength = 60000;
+            let planStdout = fs.readFileSync("src/plan.stdout", "utf8");
+            if (planStdout.length > maxLength) {
+              planStdout = `${planStdout.slice(0, maxLength)}\n... (truncated, see the job logs)`;
+            }
             const actor = process.env.GH_ACTOR || "unknown";
             const eventName = process.env.GH_EVENT_NAME || "unknown";
 
@@ -231,7 +230,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install ruff
-        run: pip install ruff
+        run: "pip install --require-hashes --only-binary :all: -r requirements-dev.txt"
 
       - name: Run ruff
         run: ruff check scripts/
