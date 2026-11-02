@@ -256,6 +256,18 @@ tofu test
 |------|------|-------------|
 | `GH_APP_ID` | Secret | GitHub App ID used to mint short-lived installation tokens |
 | `GH_APP_PRIVATE_KEY` | Secret | GitHub App private key (PEM) used by `actions/create-github-app-token` |
+| `TF_API_TOKEN` | Secret | HCP Terraform API token, exported as `TF_TOKEN_app_terraform_io` for the remote state backend |
+
+### Remote state (HCP Terraform)
+
+The state is stored in the `github-config` workspace of the `jasonouellet`
+organization (see `src/backend.tf`). The workspace **must use the Local
+execution mode** (Settings → General → Execution Mode): HCP only stores the
+state, while `plan` and `apply` run on the GitHub Actions runner.
+
+To migrate an existing local state, run `tofu login` then
+`cd src && tofu init -migrate-state`. Locally, `tofu init -backend=false` is
+still available for validation and tests.
 
 ## Dev Container
 
