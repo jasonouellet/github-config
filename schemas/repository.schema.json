@@ -272,12 +272,14 @@
     "ruleset_rule_required_status_checks": {
       "type": "object",
       "additionalProperties": false,
+      "required": ["required_check"],
       "properties": {
         "strict_required_status_checks_policy": { "type": "boolean" },
         "do_not_enforce_on_create": { "type": "boolean" },
         "required_check": {
           "type": "array",
-          "items": { "$ref": "#/definitions/ruleset_required_check" }
+          "items": { "$ref": "#/definitions/ruleset_required_check" },
+          "minItems": 1
         }
       }
     },
