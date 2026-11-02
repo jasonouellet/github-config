@@ -2,6 +2,7 @@ description: "Local Azure DevOps Stack Imulation"
 visibility: public
 auto_init: false
 has_issues: false
+allow_merge_commit: true
 merge_commit_title: PR_TITLE
 merge_commit_message: BLANK
 squash_merge_commit_title: PR_TITLE

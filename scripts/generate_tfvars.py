@@ -45,6 +45,7 @@ SCHEMA_DEFAULTS = {
     "has_wiki": False,
     "delete_branch_on_merge": True,
     "has_issues": True,
+    "allow_merge_commit": False,
     "allow_rebase_merge": True,
     "merge_commit_title": None,
     "merge_commit_message": None,
@@ -127,7 +128,7 @@ DEFAULT_MAIN_RULESET = {
                     "security_alerts_threshold": "high_or_higher",
                     "alerts_threshold": "errors",
                 }
-                for tool in ("CodeQL", "SonarCloud", "Trivy")
+                for tool in ("CodeQL",)
             ]
         },
         "copilot_code_review": {},

@@ -4,7 +4,7 @@ resource "github_repository" "this" {
   visibility          = var.visibility
   has_issues          = var.has_issues
   allow_auto_merge    = true
-  allow_merge_commit  = false
+  allow_merge_commit  = var.allow_merge_commit
   allow_rebase_merge  = var.allow_rebase_merge
   allow_update_branch = true
 

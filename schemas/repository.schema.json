@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://raw.githubusercontent.com/jasonouellet/github-config/main/schemas/repository.schema.json",
   "title": "GitHub Repository Configuration",
-  "description": "Schema v1.3.0 — validates repository configuration files in the config/ directory.",
+  "description": "Schema v1.4.0 — validates repository configuration files in the config/ directory.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -64,6 +64,10 @@
       "type": "boolean",
       "description": "Enable the Issues tab for the repository."
     },
+    "allow_merge_commit": {
+      "type": "boolean",
+      "description": "Allow merge commits on pull requests."
+    },
     "allow_rebase_merge": {
       "type": "boolean",
       "description": "Allow rebase merges on pull requests."
@@ -112,7 +116,7 @@
         },
         "target": {
           "type": "string",
-          "enum": ["branch", "tag", "push"],
+          "enum": ["branch", "tag"],
           "description": "Ruleset target."
         },
         "enforcement": {

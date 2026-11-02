@@ -24,6 +24,7 @@ variable "repositories" {
     has_wiki               = optional(bool, false)
     delete_branch_on_merge = optional(bool, true)
     has_issues             = optional(bool, true)
+    allow_merge_commit     = optional(bool, false)
     allow_rebase_merge     = optional(bool, true)
 
     merge_commit_title          = optional(string, null)

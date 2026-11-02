@@ -80,6 +80,12 @@ variable "has_issues" {
   default     = true
 }
 
+variable "allow_merge_commit" {
+  description = "Allow merge commits on pull requests."
+  type        = bool
+  default     = false
+}
+
 variable "allow_rebase_merge" {
   description = "Allow rebase merges on pull requests."
   type        = bool

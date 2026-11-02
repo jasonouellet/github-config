@@ -15,6 +15,7 @@ module "repositories" {
   has_wiki               = each.value.has_wiki
   delete_branch_on_merge = each.value.delete_branch_on_merge
   has_issues             = each.value.has_issues
+  allow_merge_commit     = each.value.allow_merge_commit
   allow_rebase_merge     = each.value.allow_rebase_merge
 
   merge_commit_title          = each.value.merge_commit_title
