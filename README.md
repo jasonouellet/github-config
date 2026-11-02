@@ -219,9 +219,14 @@ tofu plan
 | `topics` | list | `[]` | Repository topics |
 | `archived` | bool | `false` | Archive (make read-only) the repository |
 | `import_id` | bool | `null` | Set to `true` to import an existing repo into OpenTofu state before apply |
-| `rulesets` | list | `[]` | Repository rulesets managed by `github_repository_ruleset` |
+| `rulesets` | list | default `main` ruleset | Repository rulesets managed by `github_repository_ruleset` |
 
 ### rulesets
+
+When `rulesets` is omitted, a default `main` ruleset is applied (see `DEFAULT_MAIN_RULESET` in
+`scripts/generate_tfvars.py`: no deletion, signed commits, resolved review threads, rebase/squash
+only, CodeQL/SonarCloud/Trivy code scanning). A ruleset named `main` in a config file is deep-merged
+over it (e.g. `- name: main` + `import_id: 123`); use `rulesets: []` to opt out.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|

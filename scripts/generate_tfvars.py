@@ -16,6 +16,7 @@ Options:
 """
 
 import argparse
+import copy
 import json
 import re
 import sys
@@ -105,6 +106,34 @@ RULESET_COPILOT_CODE_REVIEW_DEFAULTS = {
     "review_draft_pull_requests": False,
 }
 
+# Ruleset applied to every repository that does not declare `rulesets`.
+# A ruleset named "main" in a config file is deep-merged over this one.
+DEFAULT_MAIN_RULESET = {
+    "name": "main",
+    "bypass_actors": [
+        {"actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "always"}
+    ],
+    "rules": {
+        "deletion": True,
+        "required_signatures": True,
+        "pull_request": {
+            "required_review_thread_resolution": True,
+            "allowed_merge_methods": ["rebase", "squash"],
+        },
+        "required_code_scanning": {
+            "required_code_scanning_tool": [
+                {
+                    "tool": tool,
+                    "security_alerts_threshold": "high_or_higher",
+                    "alerts_threshold": "errors",
+                }
+                for tool in ("CodeQL", "SonarCloud", "Trivy")
+            ]
+        },
+        "copilot_code_review": {},
+    },
+}
+
 HCL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_]\w*$")
 
 
@@ -115,6 +144,33 @@ def merge_defaults(data: dict, defaults: dict) -> dict:
         if key in result:
             result[key] = value
     return result
+
+
+def deep_merge(base: dict, override: dict) -> dict:
+    """Recursively merge override into base; lists and scalars are replaced."""
+    result = copy.deepcopy(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(result.get(key), dict):
+            result[key] = deep_merge(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def with_default_rulesets(rulesets_data: list[dict] | None) -> list[dict]:
+    """Apply the default "main" ruleset.
+
+    An omitted `rulesets` key yields the default ruleset, an explicit empty
+    list opts out, and a ruleset named "main" overrides the default one.
+    """
+    if rulesets_data is None:
+        return [copy.deepcopy(DEFAULT_MAIN_RULESET)]
+    return [
+        deep_merge(DEFAULT_MAIN_RULESET, ruleset)
+        if ruleset.get("name", "main") == DEFAULT_MAIN_RULESET["name"]
+        else ruleset
+        for ruleset in rulesets_data
+    ]
 
 
 def parse_rulesets(rulesets_data: list[dict] | None) -> list[dict]:
@@ -194,7 +250,7 @@ def load_repo_config(file_path: Path) -> tuple[str, dict]:
     repo_name: str = raw.get("name") or file_path.stem
 
     config = merge_defaults(raw, SCHEMA_DEFAULTS)
-    config["rulesets"] = parse_rulesets(raw.get("rulesets"))
+    config["rulesets"] = parse_rulesets(with_default_rulesets(raw.get("rulesets")))
 
     # Remove 'name' key from the config value – it is used as the map key
     config.pop("name", None)
