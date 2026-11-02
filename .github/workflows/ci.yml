@@ -235,12 +235,32 @@ jobs:
 
       - name: Run ruff
         run: ruff check scripts/
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: python
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [yaml-validate, generate-tfvars, iac, python-lint]
+    needs: [yaml-validate, generate-tfvars, iac, python-lint, codeql]
     if: always()
     steps:
       - name: Post CI Summary
@@ -252,11 +272,13 @@ jobs:
           echo "| Format Check & tfvars | ${{ needs.generate-tfvars.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| IaC Checks & Plan | ${{ needs.iac.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Python Lint | ${{ needs.python-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CodeQL Analysis | ${{ needs.codeql.result }} |" >> $GITHUB_STEP_SUMMARY
 
           # Fail if any job failed
           if [[ "${{ needs.yaml-validate.result }}" == "failure" || \
                 "${{ needs.generate-tfvars.result }}" == "failure" || \
                 "${{ needs.iac.result }}" == "failure" || \
-                "${{ needs.python-lint.result }}" == "failure" ]]; then
+                "${{ needs.python-lint.result }}" == "failure" || \
+                "${{ needs.codeql.result }}" == "failure" ]]; then
             exit 1
           fi
