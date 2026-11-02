@@ -1,0 +1,6 @@
+visibility: public
+auto_init: false
+has_projects: true
+has_wiki: true
+delete_branch_on_merge: false
+import_id: true
