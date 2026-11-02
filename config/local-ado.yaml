@@ -7,3 +7,14 @@ merge_commit_message: BLANK
 squash_merge_commit_title: PR_TITLE
 squash_merge_commit_message: PR_BODY
 import_id: true
+rulesets:
+  - name: main
+    import_id: 26350684
+  - name: merge_main
+    import_id: 11618046
+    rules:
+      deletion: true
+      non_fast_forward: true
+      required_signatures: true
+      pull_request:
+        allowed_merge_methods: [squash]

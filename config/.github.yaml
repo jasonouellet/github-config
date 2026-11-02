@@ -4,3 +4,6 @@ allow_rebase_merge: false
 squash_merge_commit_title: PR_TITLE
 delete_branch_on_merge: false
 import_id: true
+rulesets:
+  - name: main
+    import_id: 26350679
