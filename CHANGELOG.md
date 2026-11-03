@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Configuration files for all existing non-fork repositories, imported with `import_id`, including their `main` ruleset id.
+- A default `main` ruleset applied to every repository (`rulesets: []` opts out, a ruleset named `main` overrides it).
+- Repository fields `has_issues`, `allow_rebase_merge`, `merge_commit_title`, `merge_commit_message`, `squash_merge_commit_title` and `squash_merge_commit_message` (schema 1.3.0).
+- Hash-locked `requirements.txt` and `requirements-dev.txt`, used by CI and the devcontainer.
+- Dependabot groups for minor and patch updates, and a `pip` ecosystem.
+- Remote state in HCP Terraform (`src/backend.tf`), authenticated in CI/CD with the `TF_API_TOKEN` secret.
+
+### Changed
+
+- GitHub Actions pinned by SHA and updated to their latest versions.
+- `generate_tfvars.py` refactored to reduce complexity, and `--config-dir` / `--output` must stay inside the workspace.
+- The CI plan comment reads the plan from a file instead of an environment variable.
+
+- Repository configuration now uses rulesets only for branch governance; legacy `branch_protection` support was removed from the schema, generator, module, and imports.
+- Existing repository imports now support `github_repository_ruleset` resources through per-ruleset `import_id` values.
+
 ## [0.2.1] - 2026-05-13
 
 ### Changed
