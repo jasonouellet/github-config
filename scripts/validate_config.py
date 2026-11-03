@@ -42,6 +42,15 @@ except ImportError:
     sys.exit(1)
 
 
+def resolve_in_workspace(path: Path) -> Path:
+    """Resolve a path and ensure it stays inside the current working directory."""
+    resolved = path.resolve()
+    if not resolved.is_relative_to(Path.cwd().resolve()):
+        print(f"Error: '{path}' is outside the working directory.", file=sys.stderr)
+        sys.exit(1)
+    return resolved
+
+
 def load_schema(schema_path: Path) -> dict:
     """Load and return the JSON Schema from schema_path."""
     with schema_path.open("r", encoding="utf-8") as fh:
@@ -141,6 +150,10 @@ def main() -> None:
         help="Write a Sonar-compatible generic issue report to FILE",
     )
     args = parser.parse_args()
+    args.config_dir = resolve_in_workspace(args.config_dir)
+    args.schema = resolve_in_workspace(args.schema)
+    if args.report is not None:
+        args.report = resolve_in_workspace(args.report)
 
     if not args.config_dir.is_dir():
         print(
