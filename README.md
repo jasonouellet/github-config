@@ -220,14 +220,32 @@ tofu plan
 | `archived` | bool | `false` | Archive (make read-only) the repository |
 | `import_id` | bool | `null` | Set to `true` to import an existing repo into OpenTofu state before apply |
 | `allow_merge_commit` | bool | `false` | Allow merge commits on pull requests |
+| `code_scanning.require_sonarcloud` | bool | `false` | Require the `SonarCloud Code Analysis` status check |
+| `code_scanning.require_trivy` | bool | `false` | Require Trivy results uploaded to GitHub Code Scanning |
 | `rulesets` | list | default `main` ruleset | Repository rulesets managed by `github_repository_ruleset` |
 
 ### rulesets
 
 When `rulesets` is omitted, a default `main` ruleset is applied (see `DEFAULT_MAIN_RULESET` in
 `scripts/generate_tfvars.py`: no deletion, signed commits, resolved review threads, rebase/squash
-only, and CodeQL code scanning). A ruleset named `main` in a config file is deep-merged
-over it (e.g. `- name: main` + `import_id: 123`); use `rulesets: []` to opt out.
+only, and CodeQL code scanning). CodeQL remains required when customizing a `main` ruleset.
+A ruleset named `main` in a config file is deep-merged over it (e.g. `- name: main` +
+`import_id: 123`); use `rulesets: []` to opt out.
+
+Optional scanners can be enabled independently per repository:
+
+```yaml
+code_scanning:
+  require_sonarcloud: true
+  require_trivy: false
+```
+
+`require_sonarcloud` adds the `SonarCloud Code Analysis` GitHub status check to the ruleset.
+`require_trivy` adds `Trivy` to the required code-scanning tools. GitHub treats every enabled
+requirement as mandatory in addition to CodeQL; the native code-scanning rule does not provide
+an OR between tools. CodeQL's `analyze` action uploads SARIF to GitHub Code Scanning. Trivy must
+also upload SARIF with `security-events: write`; SonarCloud must publish its analysis status check.
+Only enable an optional scanner after its GitHub result is available for that repository.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|

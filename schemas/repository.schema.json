@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://raw.githubusercontent.com/jasonouellet/github-config/main/schemas/repository.schema.json",
   "title": "GitHub Repository Configuration",
-  "description": "Schema v1.4.0 — validates repository configuration files in the config/ directory.",
+  "description": "Schema v1.5.0 — validates repository configuration files in the config/ directory.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -95,6 +95,21 @@
     "import_id": {
       "type": ["boolean", "null"],
       "description": "Set to true to import an existing repository into OpenTofu state before apply."
+    },
+    "code_scanning": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "require_sonarcloud": {
+          "type": "boolean",
+          "description": "Require the SonarCloud Code Analysis status check on the default main ruleset."
+        },
+        "require_trivy": {
+          "type": "boolean",
+          "description": "Require Trivy code-scanning results uploaded to GitHub Code Scanning on the default main ruleset."
+        }
+      },
+      "description": "Optional scanner requirements. CodeQL remains required by the default main ruleset."
     },
     "rulesets": {
       "type": "array",

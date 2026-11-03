@@ -53,6 +53,10 @@ SCHEMA_DEFAULTS = {
     "squash_merge_commit_message": None,
     "import_id": None,
     "rulesets": [],
+    "code_scanning": {
+        "require_sonarcloud": False,
+        "require_trivy": False,
+    },
 }
 
 RULESET_DEFAULTS = {
@@ -107,6 +111,20 @@ RULESET_COPILOT_CODE_REVIEW_DEFAULTS = {
     "review_draft_pull_requests": False,
 }
 
+CODEQL_REQUIRED_TOOL = {
+    "tool": "CodeQL",
+    "security_alerts_threshold": "high_or_higher",
+    "alerts_threshold": "errors",
+}
+
+TRIVY_REQUIRED_TOOL = {
+    "tool": "Trivy",
+    "security_alerts_threshold": "high_or_higher",
+    "alerts_threshold": "errors",
+}
+
+SONARCLOUD_REQUIRED_CHECK = "SonarCloud Code Analysis"
+
 # Ruleset applied to every repository that does not declare `rulesets`.
 # A ruleset named "main" in a config file is deep-merged over this one.
 DEFAULT_MAIN_RULESET = {
@@ -122,14 +140,7 @@ DEFAULT_MAIN_RULESET = {
             "allowed_merge_methods": ["rebase", "squash"],
         },
         "required_code_scanning": {
-            "required_code_scanning_tool": [
-                {
-                    "tool": tool,
-                    "security_alerts_threshold": "high_or_higher",
-                    "alerts_threshold": "errors",
-                }
-                for tool in ("CodeQL",)
-            ]
+            "required_code_scanning_tool": [CODEQL_REQUIRED_TOOL]
         },
         "copilot_code_review": {},
     },
@@ -158,20 +169,103 @@ def deep_merge(base: dict, override: dict) -> dict:
     return result
 
 
-def with_default_rulesets(rulesets_data: list[dict] | None) -> list[dict]:
+def with_default_rulesets(
+    rulesets_data: list[dict] | None,
+    code_scanning_options: dict | None = None,
+) -> list[dict]:
     """Apply the default "main" ruleset.
 
     An omitted `rulesets` key yields the default ruleset, an explicit empty
     list opts out, and a ruleset named "main" overrides the default one.
+    CodeQL remains required by every default or customized "main" ruleset.
     """
     if rulesets_data is None:
-        return [copy.deepcopy(DEFAULT_MAIN_RULESET)]
-    return [
-        deep_merge(DEFAULT_MAIN_RULESET, ruleset)
+        rulesets = [copy.deepcopy(DEFAULT_MAIN_RULESET)]
+    else:
+        rulesets = [
+            deep_merge(DEFAULT_MAIN_RULESET, ruleset)
+            if ruleset.get("name", "main") == DEFAULT_MAIN_RULESET["name"]
+            else ruleset
+            for ruleset in rulesets_data
+        ]
+
+    if code_scanning_options is None:
+        options = {}
+    elif isinstance(code_scanning_options, dict):
+        options = code_scanning_options
+    else:
+        raise TypeError("code_scanning options must be a mapping")
+
+    require_sonarcloud = options.get("require_sonarcloud", False)
+    require_trivy = options.get("require_trivy", False)
+    if not isinstance(require_sonarcloud, bool) or not isinstance(require_trivy, bool):
+        raise TypeError("code_scanning options must be booleans")
+
+    main_rulesets = [
+        ruleset
+        for ruleset in rulesets
         if ruleset.get("name", "main") == DEFAULT_MAIN_RULESET["name"]
-        else ruleset
-        for ruleset in rulesets_data
     ]
+    if (require_sonarcloud or require_trivy) and not main_rulesets:
+        raise ValueError(
+            "code_scanning options require a 'main' ruleset; "
+            "they cannot be used with rulesets: [] or without a 'main' ruleset"
+        )
+
+    for ruleset in main_rulesets:
+        rules = ruleset.setdefault("rules", {})
+        if rules is None:
+            rules = {}
+            ruleset["rules"] = rules
+        if not isinstance(rules, dict):
+            raise TypeError("main ruleset rules must be a mapping")
+
+        required_scanning = rules.get("required_code_scanning")
+        if required_scanning is None:
+            required_scanning = {}
+            rules["required_code_scanning"] = required_scanning
+        if not isinstance(required_scanning, dict):
+            raise TypeError("required_code_scanning must be a mapping")
+
+        required_tools = required_scanning.get("required_code_scanning_tool")
+        if required_tools is None:
+            required_tools = []
+            required_scanning["required_code_scanning_tool"] = required_tools
+        if not isinstance(required_tools, list):
+            raise TypeError("required_code_scanning_tool must be a list")
+
+        for tool in [CODEQL_REQUIRED_TOOL] + (
+            [TRIVY_REQUIRED_TOOL] if require_trivy else []
+        ):
+            if not any(
+                isinstance(existing, dict) and existing.get("tool") == tool["tool"]
+                for existing in required_tools
+            ):
+                required_tools.append(copy.deepcopy(tool))
+
+        if require_sonarcloud:
+            required_status_checks = rules.get("required_status_checks")
+            if required_status_checks is None:
+                required_status_checks = {}
+                rules["required_status_checks"] = required_status_checks
+            if not isinstance(required_status_checks, dict):
+                raise TypeError("required_status_checks must be a mapping")
+
+            required_checks = required_status_checks.get("required_check")
+            if required_checks is None:
+                required_checks = []
+                required_status_checks["required_check"] = required_checks
+            if not isinstance(required_checks, list):
+                raise TypeError("required_status_checks.required_check must be a list")
+
+            if not any(
+                isinstance(check, dict)
+                and check.get("context") == SONARCLOUD_REQUIRED_CHECK
+                for check in required_checks
+            ):
+                required_checks.append({"context": SONARCLOUD_REQUIRED_CHECK})
+
+    return rulesets
 
 
 def normalize_conditions(conditions: dict | None) -> dict | None:
@@ -234,10 +328,14 @@ def load_repo_config(file_path: Path) -> tuple[str, dict]:
     repo_name: str = raw.get("name") or file_path.stem
 
     config = merge_defaults(raw, SCHEMA_DEFAULTS)
-    config["rulesets"] = parse_rulesets(with_default_rulesets(raw.get("rulesets")))
+    config["rulesets"] = parse_rulesets(
+        with_default_rulesets(raw.get("rulesets"), config.get("code_scanning"))
+    )
 
     # Remove 'name' key from the config value – it is used as the map key
     config.pop("name", None)
+    # These options are consumed to construct ruleset rules, not Terraform inputs.
+    config.pop("code_scanning", None)
 
     return repo_name, config
 

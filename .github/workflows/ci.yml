@@ -236,6 +236,9 @@ jobs:
       - name: Run ruff
         run: ruff check scripts/
 
+      - name: Test tfvars generation
+        run: python -m unittest discover --start-directory test --pattern 'test_*.py'
+
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest

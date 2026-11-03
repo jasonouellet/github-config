@@ -12,4 +12,9 @@ has_projects: true
 has_wiki: true
 delete_branch_on_merge: true
 import_id: true
-rulesets: []
+code_scanning:
+  require_sonarcloud: true
+  require_trivy: true
+rulesets:
+  - name: main
+    import_id: 12380967

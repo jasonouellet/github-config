@@ -1,21 +1,44 @@
-MIT License
+Business Source License 1.1
 
-Copyright (c) 2026 Jason Ouellet
+Parameters
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Licensor:
+Jason Ouellet
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Licensed Work:
+The Licensed Work is the code, prompt templates, agent specifications, documentation, and related materials made available by Licensor under this License, including any updates or modifications provided by Licensor.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Change Date:
+2030-01-01
+
+Change License:
+GNU General Public License v3.0 or later (GPL-3.0-or-later)
+
+Additional Use Grant:
+Use of the Licensed Work is freely permitted for:
+1. Non-profit organizations (NPOs / OSBL), non-governmental organizations, charities, educational institutions, and public research bodies;
+2. Personal evaluation, educational use, local development, and testing;
+3. Internal operations of Small and Medium Enterprises (SMEs) with fewer than 50 employees or less than $5,000,000 USD in annual revenue.
+
+Any commercial hosting, direct resale, offering as a managed service, or incorporation into paid commercial products by any enterprise or entity exceeding the SME limits is strictly prohibited without a separate written commercial license from the Licensor.
+
+--------------------------------------------------------------------------------
+
+Terms
+
+Licensor hereby grants you the right to Use the Licensed Work subject to the terms below.
+
+1. Grant of License.
+Licensor grants you a non-exclusive, royalty-free, worldwide license to Use the Licensed Work, subject to the conditions in Section 2 below. "Use" includes accessing, copying, modifying, and running the Licensed Work, but only for the purposes permitted under the Additional Use Grant.
+
+2. Conditions.
+You must retain all copyright notices, license texts, and attribution notices present in the Licensed Work. You must not Use the Licensed Work for any purpose that is not permitted under the Additional Use Grant without obtaining a separate commercial license from Licensor.
+
+3. Change to Change License.
+Effective as of the Change Date, or such earlier date as declared by Licensor, Licensor grants you a license to Use the Licensed Work under the terms of the Change License. On and after the Change Date, the Change License terms shall apply, and the restrictions in the Additional Use Grant shall no longer apply.
+
+4. Termination.
+Your rights under this License shall terminate automatically if you breach any of its terms and fail to cure such breach within 30 days of receiving written notice from Licensor.
+
+5. Disclaimer of Warranties and Limitation of Liability.
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION IN CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE LICENSED WORK OR THE USE OR OTHER DEALINGS IN THE LICENSED WORK.
