@@ -1,0 +1,10 @@
+description: "Exemple IaC avec Terraform et AWS"
+visibility: public
+auto_init: false
+has_projects: true
+has_wiki: true
+delete_branch_on_merge: false
+import_id: true
+rulesets:
+  - name: main
+    import_id: 26350676

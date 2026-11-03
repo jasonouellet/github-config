@@ -9,6 +9,13 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "terraform"
     directory: "/src"
@@ -19,6 +26,13 @@ updates:
     labels:
       - "dependencies"
       - "terraform"
+    groups:
+      terraform-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "terraform"
     directory: "/src/modules/github_repository"
@@ -29,6 +43,13 @@ updates:
     labels:
       - "dependencies"
       - "terraform"
+    groups:
+      terraform-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "devcontainers"
     directory: "/"
@@ -39,3 +60,27 @@ updates:
     labels:
       - "dependencies"
       - "devcontainer"
+    groups:
+      devcontainers-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    groups:
+      python-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

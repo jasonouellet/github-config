@@ -45,7 +45,7 @@ variable file, and GitHub Actions CI/CD pipelines validate and apply changes aut
 ## Prerequisites
 
 - [OpenTofu](https://opentofu.org/docs/intro/install/) >= 1.6
-- Python >= 3.10 with `pyyaml` and `jsonschema` installed (`pip install pyyaml jsonschema`)
+- Python >= 3.10 with `pyyaml` and `jsonschema` installed (`pip install -r requirements.txt`)
 - [pre-commit](https://pre-commit.com/) installed (`pip install pre-commit`)
 - A GitHub token with repository administration permissions for local plan/apply operations
 
@@ -98,7 +98,7 @@ Each error line shows the YAML field path and a description, for example:
 ```
 [FAIL] config/my-repo.yaml
        - visibility: 'staging' is not one of ['public', 'private', 'internal']
-       - branch_protection.required_approving_review_count: 10 is greater than the maximum of 6
+  - rulesets.0.rules.pull_request.required_approving_review_count: 10 is greater than the maximum of 6
 ```
 
 Fix the flagged fields in the YAML file to match the allowed values described in the
@@ -172,11 +172,19 @@ auto_init: true
 import_id: true            # optional: set true when repo already exists and must be imported
 topics:
   - my-topic
-branch_protection:
-  pattern: main
-  require_signed_commits: false
-  required_pull_request_reviews:
-    required_approving_review_count: 1
+rulesets:
+  - name: main
+    target: branch
+    enforcement: active
+    conditions:
+      ref_name:
+        include:
+          - "~DEFAULT_BRANCH"
+        exclude: []
+    rules:
+      required_signatures: false
+      pull_request:
+        required_approving_review_count: 1
 ```
 
 2. Regenerate the tfvars file:
@@ -211,20 +219,44 @@ tofu plan
 | `topics` | list | `[]` | Repository topics |
 | `archived` | bool | `false` | Archive (make read-only) the repository |
 | `import_id` | bool | `null` | Set to `true` to import an existing repo into OpenTofu state before apply |
-| `branch_protection` | object | `null` | See below |
+| `allow_merge_commit` | bool | `false` | Allow merge commits on pull requests |
+| `code_scanning.require_sonarcloud` | bool | `false` | Require the `SonarCloud Code Analysis` status check |
+| `code_scanning.require_trivy` | bool | `false` | Require Trivy results uploaded to GitHub Code Scanning |
+| `rulesets` | list | default `main` ruleset | Repository rulesets managed by `github_repository_ruleset` |
 
-### branch_protection
+### rulesets
+
+When `rulesets` is omitted, a default `main` ruleset is applied (see `DEFAULT_MAIN_RULESET` in
+`scripts/generate_tfvars.py`: no deletion, signed commits, resolved review threads, rebase/squash
+only, and CodeQL code scanning). CodeQL remains required when customizing a `main` ruleset.
+A ruleset named `main` in a config file is deep-merged over it (e.g. `- name: main` +
+`import_id: 123`); use `rulesets: []` to opt out.
+
+Optional scanners can be enabled independently per repository:
+
+```yaml
+code_scanning:
+  require_sonarcloud: true
+  require_trivy: false
+```
+
+`require_sonarcloud` adds the `SonarCloud Code Analysis` GitHub status check to the ruleset.
+`require_trivy` adds `Trivy` to the required code-scanning tools. GitHub treats every enabled
+requirement as mandatory in addition to CodeQL; the native code-scanning rule does not provide
+an OR between tools. CodeQL's `analyze` action uploads SARIF to GitHub Code Scanning. Trivy must
+also upload SARIF with `security-events: write`; SonarCloud must publish its analysis status check.
+Only enable an optional scanner after its GitHub result is available for that repository.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `pattern` | string | `"main"` | Branch name pattern |
-| `enforce_admins` | bool | `false` | Enforce rules for admins |
-| `require_signed_commits` | bool | `true` | Require GPG-signed commits |
-| `required_status_checks.strict` | bool | `true` | Require up-to-date branch |
-| `required_status_checks.contexts` | list | `[]` | Required CI check names |
-| `required_pull_request_reviews.dismiss_stale_reviews` | bool | `true` | Dismiss stale approvals on new commits |
-| `required_pull_request_reviews.require_code_owner_reviews` | bool | `false` | Require CODEOWNERS review |
-| `required_pull_request_reviews.required_approving_review_count` | number | `1` | Minimum approvals required |
+| `name` | string | *(required)* | Ruleset name |
+| `target` | string | `"branch"` | `branch` or `tag` |
+| `enforcement` | string | `"active"` | `disabled`, `active`, or `evaluate` |
+| `import_id` | number | `null` | Existing GitHub ruleset ID for import |
+| `conditions.ref_name.include` | list | `["~DEFAULT_BRANCH"]` | Refs included by the ruleset |
+| `conditions.ref_name.exclude` | list | `[]` | Refs excluded from the ruleset |
+| `rules.required_signatures` | bool | `null` | Require signed commits |
+| `rules.pull_request.required_approving_review_count` | number | `0` | Minimum approvals required |
 
 ## Running Tests
 
@@ -243,6 +275,18 @@ tofu test
 |------|------|-------------|
 | `GH_APP_ID` | Secret | GitHub App ID used to mint short-lived installation tokens |
 | `GH_APP_PRIVATE_KEY` | Secret | GitHub App private key (PEM) used by `actions/create-github-app-token` |
+| `TF_API_TOKEN` | Secret | HCP Terraform API token, exported as `TF_TOKEN_app_terraform_io` for the remote state backend |
+
+### Remote state (HCP Terraform)
+
+The state is stored in the `github-config` workspace of the `jasonouellet`
+organization (see `src/backend.tf`). The workspace **must use the Local
+execution mode** (Settings → General → Execution Mode): HCP only stores the
+state, while `plan` and `apply` run on the GitHub Actions runner.
+
+To migrate an existing local state, run `tofu login` then
+`cd src && tofu init -migrate-state`. Locally, `tofu init -backend=false` is
+still available for validation and tests.
 
 ## Dev Container
 

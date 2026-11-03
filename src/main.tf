@@ -14,5 +14,14 @@ module "repositories" {
   has_projects           = each.value.has_projects
   has_wiki               = each.value.has_wiki
   delete_branch_on_merge = each.value.delete_branch_on_merge
-  branch_protection      = each.value.branch_protection
+  has_issues             = each.value.has_issues
+  allow_merge_commit     = each.value.allow_merge_commit
+  allow_rebase_merge     = each.value.allow_rebase_merge
+
+  merge_commit_title          = each.value.merge_commit_title
+  merge_commit_message        = each.value.merge_commit_message
+  squash_merge_commit_title   = each.value.squash_merge_commit_title
+  squash_merge_commit_message = each.value.squash_merge_commit_message
+
+  rulesets = each.value.rulesets
 }
